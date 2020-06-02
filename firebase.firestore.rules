@@ -1,0 +1,30 @@
+// https://firebase.google.com/docs/firestore/security/rules-structure
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // True if the user is signed in and he/she is "owner" or "admin" (with "admin" claims/token)
+    function ownerOrAdmin() {
+      return request.auth.uid != null &&
+      (resource.data.uid == request.auth.uid || request.auth.token.admin == true);
+    }
+    
+    // for test/dummy collections - allow all
+    // match /dummy/{document=**} {
+    //   allow read, create;
+      
+    //   // Only authenticated user can update - if he/she is "owner of the document or "admin"
+    //   allow update, delete: if ownerOrAdmin();
+    // }
+       
+    // for all collections
+    match /{document=**} {
+      // anyone can read
+      allow read;
+
+			// Only authenticated user can create
+      allow create: if request.auth.uid != null;
+      
+      // Only authenticated user can update - if he/she is "owner of the document or "admin"
+      allow update, delete: if ownerOrAdmin();
+    }
+  }
+}
