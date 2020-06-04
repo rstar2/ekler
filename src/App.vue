@@ -23,31 +23,29 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
+      <v-btn href="https://github.com/vuetifyjs/vuetify/releases/latest" target="_blank" text>
         <span class="mr-2">Latest Release</span>
         <v-icon>mdi-open-in-new</v-icon>
       </v-btn>
     </v-app-bar>
 
     <v-content>
-      <HelloWorld />
+      <v-container fluid>
+        <v-fade-transition mode="out-in">
+          <router-view />
+        </v-fade-transition>
+      </v-container>
+
+      <!--  These components are necessary for the notifications/confirmations plugin to work -->
+      <Notifications />
+      <Confirmations />
     </v-content>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld";
-
 export default {
-  name: "App",
-
-  components: {
-    HelloWorld
-  },
+  name: 'App',
 
   data: () => ({
     //
