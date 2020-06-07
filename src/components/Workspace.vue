@@ -26,7 +26,7 @@ import D3Network from 'vue-d3-network';
 import 'vue-d3-network/dist/vue-d3-network.css';
 
 export default {
-  name: 'Network',
+  name: 'Workspace',
 
   components: {
     D3Network
