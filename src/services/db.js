@@ -1,152 +1,121 @@
 import logger from '../lib/logger';
-// import { db, functions } from '../lib/firebase';
+import { db, functions } from '../lib/firebase';
 
 // get the Firebase function to call
-// const placeUploader = functions.httpsCallable('dbAddPlaceApp');
+const eklerAddFn = functions.httpsCallable('dbAddEkler_app');
 
-// const /* firebase.firestore.CollectionReference */ tags = db.collection('tags');
-// const /* firebase.firestore.CollectionReference */ users = db.collection(process.env.VUE_APP_FIREBASE_COLL_USERS);
+const /* firebase.firestore.CollectionReference */ users = db.collection(process.env.VUE_APP_FIREBASE_COLL_USERS);
+const /* firebase.firestore.CollectionReference */ history = db.collection(process.env.VUE_APP_FIREBASE_COLL_HISTORY);
+const /* firebase.firestore.CollectionReference */ eklers = db.collection(process.env.VUE_APP_FIREBASE_COLL_EKLERS);
 
-// // Use pagination cursors: https://firebase.google.com/docs/firestore/query-data/query-cursors
-// let paginationCursor = null;
-// let hasMore = true;
+// Use pagination cursors: https://firebase.google.com/docs/firestore/query-data/query-cursors
+let historyLoad = {
+  pageCursor: null,
+  hasMore: true
+};
 
 export default {
   init() {
     logger.info('DB init');
   },
 
-//   /**
-//    * Get all tags stored in the DB
-//    * @return {Promise<String[]>}
-//    */
-//   tagsLoad() {
-//     return tags.get().then(snapshot => {
-//       const tagsDocs = [];
-//       snapshot.forEach(doc => {
-//         // the tags are store just as empty documents - e.g. no data-fields in them
-//         // and with predefined IDs
-//         tagsDocs.push(doc.id);
-//       });
+  /**
+   * Get the workspace (e.g. all users)
+   * @return {Promise<[]>}
+   */
+  usersLoad() {
+    return users.get().then(snapshot => {
+      const usersDocs = [];
+      snapshot.forEach(doc => {
+        usersDocs.push({ id: doc.id, ...doc.data() });
+      });
 
-//       return tagsDocs;
-//     });
-//   },
+      logger.info(`Users: Loaded ${usersDocs.length} users`);
 
-//   /**
-//    * Get places
-//    * @param {Number} count Zero or less means no limits/pages
-//    * @return {Promise<{places: {id:String, [field: string]: any}[], hasMore: Boolean}>}
-//    */
-//   placesLoad(count = -1) {
-//     // fail fast if no more
-//     if (!hasMore) return Promise.resolve({ places: [], hasMore: false });
+      return usersDocs;
+    });
+  },
 
-//     // .where('uid', '==', 'testerUID')
+  /**
+   * Get history
+   * @param {Number} count Zero or less means no limits/pages
+   * @return {Promise<{history: {[field: string]: any}[], hasMore: Boolean}>}
+   */
+  historyLoad(count = -1) {
+    // fail fast if no more
+    if (!historyLoad.hasMore) return Promise.resolve({ history: [], hasMore: false });
 
-//     // get the latest places first
-//     // NOTE - in order this to work there has to be created Firebase Composite index
-//     let query = places.orderBy('createdAt', 'desc').orderBy('title');
-//     if (count > 0) {
-//       query = query.limit(count);
-//     }
+    // .where('uid', '==', 'testerUID')
 
-//     // start after the last known pagination cursor
-//     if (paginationCursor) {
-//       query = query.startAfter(paginationCursor);
-//     }
+    // get the latest history records first
+    let query = history.orderBy('createdAt', 'desc');
+    if (count > 0) {
+      query = query.limit(count);
+    }
 
-//     return query.get().then(snapshot => {
-//       const size = snapshot.size;
-//       const places = [];
-//       if (size) {
-//         snapshot.forEach(doc => {
-//           // doc.data() is never undefined for query doc snapshots
-//           places.push({ id: doc.id, ...doc.data() });
-//         });
+    // start after the last known pagination cursor
+    if (historyLoad.pageCursor) {
+      query = query.startAfter(historyLoad.pageCursor);
+    }
 
-//         if (count > 0) {
-//           if (size < count) {
-//             // returned less then requested (e.g. all the last) - so no more to load
-//             hasMore = false;
-//             paginationCursor = null;
-//           } else {
-//             // mark the last known pagination cursor
-//             paginationCursor = snapshot.docs[size - 1];
-//           }
-//         } else {
-//           // returned the whole collection - so no more to load
-//           hasMore = false;
-//           paginationCursor = null;
-//         }
-//       } else {
-//         // nothing/empty is returned - so no more to load
-//         hasMore = false;
-//         paginationCursor = null;
-//       }
+    return query.get().then(snapshot => {
+      const size = snapshot.size;
+      const historyDocs = [];
+      if (size) {
+        snapshot.forEach(doc => {
+          // doc.data() is never undefined for query doc snapshots
+          historyDocs.push(doc.data());
+        });
 
-//       logger.info(`PlacesService: Fetched new ${places.length} places`);
-//       return {
-//         places,
-//         hasMore
-//       };
-//     });
-//   },
+        if (count > 0) {
+          if (size < count) {
+            // returned less then requested (e.g. all the last) - so no more to load
+            historyLoad.hasMore = false;
+          } else {
+            // mark the last known pagination cursor
+            historyLoad.pageCursor = snapshot.docs[size - 1];
+          }
+        } else {
+          // returned the whole collection - so no more to load
+          historyLoad.hasMore = false;
+        }
+      } else {
+        // nothing/empty is returned - so no more to load
+        historyLoad.hasMore = false;
+      }
 
-//   /**
-//    * Update an existing place
-//    * @param {String} placeId The place id to update
-//    * @param {String[]?} tags the updated tags
-//    * @param {String?} title the updated title
-//    * @param {String?} description the updated description
-//    * @return {Promise<{id:String, [field: String]: any}>}
-//    */
-//   placeUpdate(placeId, { tags, title, description }) {
-//     const placeDoc = places.doc(placeId);
-//     // pass only "valid" fields - cannot pass 'undefined'
-//     // and 'null' is valid value
-//     const place = {
-//       ...(tags && { tags }),
-//       ...(title && { title }),
-//       ...(description && { description })
-//     };
-//     return placeDoc.set(place, { merge: true }).then(() => ({ id: placeId, ...place }));
-//   },
+      logger.info(`History: Fetched new ${historyDocs.length} records`);
+      return {
+        history: historyDocs,
+        hasMore: historyLoad.hasMore
+      };
+    });
+  },
 
-//   /**
-//    * Add a new place
-//    * @param {*} data the place's data
-//    * @return {Promise}
-//    */
-//   placeAdd(data) {
-//     // 1. Use the use client Firebase Firestore API - this could be disabled in the Firestore rules
-//     // so that only Firebase Functions should be used
-//     // return places
-//     //   .add(data)
-//     //   .then(/*FirebaseFirestore.DocumentReference>*/ docRef => docRef.get())
-//     //   .then(/*FirebaseFirestore.DocumentSnapshot>*/ docSnapshot => ({ id: docSnapshot.id, ...docSnapshot.data() }));
+  /**
+   * Get the Eklers "graph"
+   * @return {Promise<[]>}
+   */
+  eklersLoad() {
+    return eklers.get().then(snapshot => {
+      const eklersDocs = [];
+      snapshot.forEach(doc => {
+        eklersDocs.push({ id: doc.id, owes: { ...doc.data() } });
+      });
 
-//     // 2. Use the Firebase HTTPS function (e.g. using normal fetch/axios)
-//     // return fetch('https://us-central1-ma-place.cloudfunctions.net/dbAddPlaceWeb', {
-//     //   method: 'POST',
-//     //   headers: {
-//     //     // NOTE: this is obligatory for JSON encoded data so that the Express 'body-parser' to parse it properly
-//     //     'Content-Type': 'application/json'
-//     //   },
-//     //   body: JSON.stringify(data)
-//     // }).then(res => res.json());
+      logger.info(`Eklers: Loaded ${eklersDocs.length} eklers`);
 
-//     // 3. Use the Firebase Callable function
-//     return placeUploader(data).then(result => result.data);
-//   },
+      return eklersDocs;
+    });
+  },
 
-//   /**
-//    * Delete an existing place
-//    * @param {String} placeId The place id to update
-//    * @return {Promise}
-//    */
-//   placeDelete(placeId) {
-//     // use client Firebase Firestore API
-//     return places.doc(placeId).delete();
-//   }
+  /**
+   * Add an Ekler
+   * @return {Promise<>}
+   */
+  eklerAdd(from, to, count = 1) {
+    // the Firebase Firestore DB is protected from unauthorized add/update/delete
+    // so use a Firebase Callable Function
+    return eklerAddFn({ from, to, count }).then(result => result.data);
+  }
 };

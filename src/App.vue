@@ -7,7 +7,10 @@
     <v-content>
       <v-container fluid>
         <v-fade-transition mode="out-in">
-          <router-view />
+          <!-- Use keep-alive as the main views are not needed to be recreated each time -->
+          <keep-alive>
+            <router-view />
+          </keep-alive>
         </v-fade-transition>
       </v-container>
 

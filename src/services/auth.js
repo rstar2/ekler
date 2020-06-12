@@ -96,6 +96,7 @@ export default {
   /**
    * Update currently logged-in user's password
    * @param {String} newPassword
+   * @return {Promise}
    */
   updatePassword(newPassword) {
     const user = auth.currentUser;
@@ -111,12 +112,13 @@ export default {
    * Update currently logged-in user's profile
    * @param {String?} displayName
    * @param {String?} photoURL
+   * @return {Promise<}
    */
   updateProfile({ displayName, photoURL }) {
     const user = auth.currentUser;
 
     if (user) {
-      return user.updateProfile({ displayName, photoURL });
+      return user.updateProfile({ displayName, photoURL }).then(() => user);
     } else {
       return Promise.reject('Not logged in');
     }
