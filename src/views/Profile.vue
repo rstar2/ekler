@@ -5,7 +5,7 @@
 
       <v-col>
         <span class="headline">Name: </span>
-        {{ authUser.displayName || '"Not set"' }}
+        {{ authUser.name || '"Not set"' }}
         <v-btn
           text
           @click="
@@ -85,7 +85,7 @@ export default {
      */
     onInput(value) {
       if (this.dialogInput.for === 'Name') {
-        this.changeProfile({ displayName: value });
+        this.changeProfile({ name: value });
       } else if (this.dialogInput.for === 'Password') {
         this.changePassword(value);
       } else {
@@ -97,12 +97,12 @@ export default {
       const photoURL = undefined;
       this.changeProfile({ photoURL });
     },
-    async changeProfile({ displayName, photoURL }) {
+    async changeProfile({ name, photoURL }) {
       try {
         // passing null will clear the display name
         // missing prop or undefined is just not chnaging it
 
-        await this.$store.dispatch('updateProfile', { displayName, photoURL });
+        await this.$store.dispatch('updateProfile', { name, photoURL });
       } catch (error) {
         this.$notify({ text: error.message || 'Failed to update profile', type: 'error' });
       }

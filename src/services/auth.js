@@ -12,21 +12,26 @@ export default {
     // 1. Initial Firebase auth state fetching, as after page-reload
     // 2. As a result to 'createUserWithEmailAndPassword', 'signInWithEmailAndPassword', 'signOut'
     //    so technically the commits after their results are not needed, but let them stay for now
+    const _this = this; // firebase calls this callback inside a Promise so this inside it is the Promise itself
     auth.onAuthStateChanged(user => {
       let promise = Promise.resolve(null);
 
       // allow only "verified" users
-      if (user && user.emailVerified) {
-        // auth user - wait to get the custom claims
-        promise = user.getIdTokenResult().then(idTokenResult => {
-          // this is like s JWT token (aud, iss, iat, exp, email, sub, user_id)
-          // and custom ones like 'admin'
-          logger.info('Logged in user claims', idTokenResult.claims);
+      if (user) {
+        if (user.emailVerified) {
+          // auth user - wait to get the custom claims
+          promise = user.getIdTokenResult().then(idTokenResult => {
+            // this is like s JWT token (aud, iss, iat, exp, email, sub, user_id)
+            // and custom ones like 'admin'
+            logger.info('Logged in user claims', idTokenResult.claims);
 
-          // store the custom claims directly onto the stored user object (currently 'admin' only)
-          user.claims = idTokenResult.claims;
-          return user;
-        });
+            // store the custom claims directly onto the stored user object (currently 'admin' only)
+            user.claims = idTokenResult.claims;
+            return user;
+          });
+        } else {
+          _this.logout();
+        }
       }
 
       // notify the callback for the auth
@@ -42,36 +47,31 @@ export default {
   register(payload) {
     const { email, password, name } = payload;
 
-    // asynchronous action that returns Promise so it can be chained in more complex flows
-    return auth.createUserWithEmailAndPassword(email, password).then(creds => {
-      const user = creds.user;
+    return (
+      // 1. create/register the user in the auth service
+      auth
+        .createUserWithEmailAndPassword(email, password)
+        // we can use either the returned user object or "auth.currentUser"
+        .then(creds => creds.user)
 
-      let sendEmailVerify = user.sendEmailVerification();
+        // 2. send the user a verification email
+        .then(user => user.sendEmailVerification() && user)
 
-      // 1. Store limited data in the auth user record
-      // we can use either the returned user object or "auth.currentUser"
-      //   return sendEmailVerify.then(() => {
-      //     user.updateProfile({
-      //       displayName: name
-      //       //photoURL: // some photo url
-      //     })
-      //   });
+        // 3. Store limited data in the auth user record
+        .then(user => user.updateProfile({ displayName: name }) && user)
 
-      // 2. create new user inside a custom database 'users' collection
-      // create it with the same matching uid
-      return sendEmailVerify.then(() =>
-        db
-          .collection(process.env.VUE_APP_FIREBASE_COLL_USERS)
-          .doc(user.uid)
-          .set({
-            name: name
-            // age: 40
-            // ...
-          })
-          // always "logout" internally from Firebase, until user verifies his email
-          .then(() => this.logout())
-      );
-    });
+        // 4. create new user inside a custom database 'users' collection
+        // create it with the same matching uid
+        .then(user =>
+          db
+            .collection(process.env.VUE_APP_FIREBASE_COLL_USERS)
+            .doc(user.uid)
+            .set({ name: name })
+        )
+
+        // 5. always "logout" internally from Firebase, until user verifies his email
+        .then(() => this.logout())
+    );
   },
 
   /**
@@ -110,15 +110,27 @@ export default {
 
   /**
    * Update currently logged-in user's profile
-   * @param {String?} displayName
+   * @param {String?} name
    * @param {String?} photoURL
    * @return {Promise<}
    */
-  updateProfile({ displayName, photoURL }) {
+  updateProfile({ name, photoURL }) {
     const user = auth.currentUser;
 
     if (user) {
-      return user.updateProfile({ displayName, photoURL }).then(() => user);
+      return (
+        user
+          // 1. update in the auth serv ice
+          .updateProfile({ displayName: name, photoURL })
+          // 2. update in the 'users' DB
+          .then(() =>
+            db
+              .collection(process.env.VUE_APP_FIREBASE_COLL_USERS)
+              .doc(user.uid)
+              .set({ name })
+          )
+          .then(() => user)
+      );
     } else {
       return Promise.reject('Not logged in');
     }

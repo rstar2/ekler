@@ -44,7 +44,7 @@ const store = new Vuex.Store({
      * @return {String|null}
      */
     authId(state) {
-      return !!state.authUser && state.authUser.id;
+      return state.authUser && state.authUser.id;
     },
     /**
      * @param {*} state
@@ -155,18 +155,12 @@ const store = new Vuex.Store({
 
     /**
      * Update current user's profile
-     * @param {Vuex.State} state
      * @param {Vuex.Commit} commit
-     * @param {{displayName?:String, photoURL?: String}} payload
+     * @param {{name?:String, photoURL?: String}} payload
      */
-    async updateProfile({ state, commit }, payload) {
+    async updateProfile({ commit }, payload) {
       const user = await auth.updateProfile(payload);
-
-      // merge into current
-      const authUser = state.authUser;
-      authUser.displayName = user.displayName;
-      authUser.photoURL = user.photoURL;
-      commit('authUser', authUser);
+      commit('authUser', fixUser(user));
     },
 
     /* -------------------------------------- */
@@ -214,11 +208,43 @@ const store = new Vuex.Store({
     async eklersLoad({ commit }) {
       const eklers = await db.eklersLoad();
       commit('eklersSet', eklers);
+    },
+
+    /**
+     * Add/Owe eklers
+     * @param {Vuex.ActionContext} context
+     * @param {{from:String, to: String, count?: Number}} payload
+     * @return {Promise}
+     */
+    async eklersAdd(context, payload) {
+      const { from, to, count } = payload;
+      await db.eklersAdd(from, to, count);
     }
   }
 });
 
 export default store;
+
+/**
+ * NOTE: don't pass the firebase.User as payload as it doesn't work in Vuex strict mode
+ * as Firebase internally changes some of its user's (e.g. payload's) props,
+ * so create a new object with needed props
+ * @param {firebase.User?} user firebase.User instance enhanced with a 'claims' Object prop
+ */
+const fixUser = user => {
+  return (
+    user && {
+      id: user.uid,
+      email: user.email,
+      claims: user.claims,
+
+      // the firebase.User has 'displayName' and 'photoURL' (from the auth service),
+      // but will 'sync' them with the users DB also and so will use 'name' and 'photoURL'
+      name: user.displayName,
+      photoURL: user.photoURL
+    }
+  );
+};
 
 // Initialize the Auth service
 /**
@@ -226,18 +252,7 @@ export default store;
  */
 auth.init(user => {
   store.commit('authInitialized');
-
-  // NOTE: don't pass the firebase.User as payload as it doesn't work in Vuex strict mode
-  // as Firebase internally changes some of its user's (e.g. payload's) props
-  // const authUser = user; - will not work so create a new object with needed props
-  const authUser = user && {
-    id: user.uid,
-    email: user.email,
-    displayName: user.displayName,
-    photoURL: user.photoURL,
-    claims: user.claims
-  };
-  store.commit('authUser', authUser);
+  store.commit('authUser', fixUser(user));
 });
 
 // init the DB - like Users/History/Eklers....

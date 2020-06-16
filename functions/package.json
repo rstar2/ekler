@@ -1,0 +1,14 @@
+{
+  "name": "ekler-functions",
+  "version": "1.0.0",
+  "author": "Rumen Neshev <rstardev@abv.bg>",
+  "private": true,
+  "license": "MIT",
+  "dependencies": {
+    "firebase-admin": "^8.12.1",
+    "firebase-functions": "^3.7.0"
+  },
+  "engines": {
+    "node": "10"
+  }
+}

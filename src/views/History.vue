@@ -9,6 +9,7 @@
         <v-list-item-content>
           <v-list-item-title v-text="getRecordTitle(record)" />
           <v-list-item-subtitle v-text="getRecordSubtitle(record)" />
+          <v-divider />
         </v-list-item-content>
       </v-list-item>
     </v-list-item-group>
@@ -42,7 +43,7 @@ export default {
      * @param {String} to
      */
     getRecordSubtitle({ createdAt }) {
-      return new Date(createdAt);
+      return new Date(createdAt).toLocaleString();
     }
   }
 };

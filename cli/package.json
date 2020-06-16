@@ -1,0 +1,12 @@
+{
+  "name": "ekler-cli",
+  "version": "1.0.0",
+  "author": "Rumen Neshev <rstardev@abv.bg>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "firebase-admin": "^8.12.1",
+    "minimist": "^1.2.5"
+  }
+}

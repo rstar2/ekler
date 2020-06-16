@@ -75,7 +75,7 @@ export default {
   },
   methods: {
     doAction() {
-      if (!this.value) return;
+      if (this.disabled) return;
 
       this.$emit('action', this.value);
 

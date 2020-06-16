@@ -24,11 +24,11 @@
         <v-icon>mdi-logout</v-icon>
       </v-btn>
       <template v-else>
-        <v-btn text @click="showDialogLogin(false)">
+        <v-btn text @click.stop="showDialogLogin(false)">
           <span class="mr-2">Login</span>
           <v-icon>mdi-open-in-new</v-icon>
         </v-btn>
-        <v-btn text @click="showDialogLogin(true)">
+        <v-btn text @click.stop="showDialogLogin(true)">
           <span class="mr-2">Register</span>
           <v-icon>mdi-account-plus-outline</v-icon>
         </v-btn>

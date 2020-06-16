@@ -8,6 +8,7 @@ const readline = require('readline');
 
 const { spawn } = require('child_process');
 
+// NOTE!!! firebase is reserved namespace - e.g. cannot have secret-token "firebase.xxx"
 const skipMain = ['firebase', 'cli'];
 /**
  * Convert environment variable names of the type "VUE_APP_CLOUDINARY_CLOUD_NAME" to "cloudinary.cloudname"
@@ -18,6 +19,7 @@ const sanitizeKey = key => {
   const tokens = key
     .replace('VUE_APP_', '')
     .replace('SERVER_APP_', '')
+    .replace('FIREBASE_COLL_', 'DB_COLL_')
     .toLowerCase()
     .split('_');
   const main = tokens[0];

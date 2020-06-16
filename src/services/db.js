@@ -45,8 +45,6 @@ export default {
     // fail fast if no more
     if (!historyLoad.hasMore) return Promise.resolve({ history: [], hasMore: false });
 
-    // .where('uid', '==', 'testerUID')
-
     // get the latest history records first
     let query = history.orderBy('createdAt', 'desc');
     if (count > 0) {
@@ -113,7 +111,7 @@ export default {
    * Add an Ekler
    * @return {Promise<>}
    */
-  eklerAdd(from, to, count = 1) {
+  eklersAdd(from, to, count = 1) {
     // the Firebase Firestore DB is protected from unauthorized add/update/delete
     // so use a Firebase Callable Function
     return eklerAddFn({ from, to, count }).then(result => result.data);
