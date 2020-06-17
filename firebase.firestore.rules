@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // True if the user is signed in and he/she is "owner" or "admin" (with "admin" claims/token)
     function ownerOrAdmin() {
-      return request.auth.uid != null &&
+      return request.auth != null &&
       (resource.data.uid == request.auth.uid || request.auth.token.admin == true);
     }
     
@@ -15,16 +15,40 @@ service cloud.firestore {
     //   allow update, delete: if ownerOrAdmin();
     // }
        
-    // for all collections
-    match /{document=**} {
+    // for history collection
+    match /history/{document=**} {
       // anyone can read
       allow read;
 
 			// Only authenticated user can create
-      allow create: if request.auth.uid != null;
+      allow create: if request.auth != null;
       
-      // Only authenticated user can update - if he/she is "owner of the document or "admin"
-      allow update, delete: if ownerOrAdmin();
+      // not allowed update, delete
+    }
+    
+    // for eklers collection
+    match /eklers/{document=**} {
+      // anyone can read
+      allow read;
+
+			// Only authenticated user can create
+      allow create: if request.auth != null;
+      
+      // not allowed - update, delete
+    }
+    
+    // for history collection
+    match /users/{userId} {
+      // anyone can read
+      allow read;
+
+			// Only authenticated user can create
+      allow create: if request.auth != null;
+      
+      // not allowed update, delete
+      allow update: if request.auth != null && request.auth.uid == userId;
+      
+      // not allowed delete
     }
   }
 }
