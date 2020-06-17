@@ -17,7 +17,8 @@ module.exports = async (auth, db, { email, password, name, title }, collUsers) =
   const userRecord = await auth.createUser({
     email,
     password,
-    emailVerified: true // no need user to verify it
+    emailVerified: true, // no need user to verify it
+    displayName: name
   });
 
   // add in 'users' DB
