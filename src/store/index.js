@@ -95,11 +95,11 @@ const store = new Vuex.Store({
 
     /**
      * @param {*} state
-     * @param {HistoryRecord} history
+     * @param {HistoryRecord[]} history
      */
     historyAdded(state, history) {
       // add all specified new places
-      state.history.push(...history);
+      state.history.unshift(...history);
     },
     /**
      * @param {*} state
@@ -255,5 +255,15 @@ auth.init(user => {
   store.commit('authUser', fixUser(user));
 });
 
-// init the DB - like Users/History/Eklers....
-db.init();
+// init the DB - like Users/History/Eklers.... - and listen for real-time updates
+db.init({
+  historyAddCallback: historyRec => {
+    store.commit('historyAdded', [HistoryRecord.fromDB(historyRec)]);
+  },
+  eklersChangeCallback: eklers => {
+    store.commit('eklersSet', eklers);
+  },
+  usersChangeCallback: users => {
+    store.commit('usersSet', users);
+  }
+});

@@ -48,7 +48,7 @@ export default {
   computed: {
     nodes() {
       // return [ { id: 1, name: 'my node 1' }, ....]
-      const nodes = [...this.users];
+      const nodes = this.users.map(user => ({ id: user.id, name: user.name }));
       if (this.authUserId) {
         nodes.find(node => {
           if (node.id === this.authUserId) {
@@ -63,6 +63,7 @@ export default {
     links() {
       //  return [{ sid: 4, tid: 5, name: 3 }, ...]
       const links = [];
+
       this.eklers.forEach(({ /* String */ id: sid, /* Object */ owes }) => {
         Object.keys(owes).forEach(tid => {
           let _color;
@@ -70,6 +71,10 @@ export default {
           links.push({ sid, tid, name: owes[tid], _color });
         });
       });
+
+      // just "specify" so that Vue can reach on it change also, as intenally in D3Network
+      // the links are not changed when nodes are
+      this.nodes;
 
       return links;
     }

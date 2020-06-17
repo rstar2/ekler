@@ -28,10 +28,10 @@
           <span class="mr-2">Login</span>
           <v-icon>mdi-open-in-new</v-icon>
         </v-btn>
-        <v-btn text @click.stop="showDialogLogin(true)">
+        <!-- <v-btn text @click.stop="showDialogLogin(true)">
           <span class="mr-2">Register</span>
           <v-icon>mdi-account-plus-outline</v-icon>
-        </v-btn>
+        </v-btn> -->
       </template>
     </template>
 

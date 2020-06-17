@@ -9,14 +9,109 @@ const /* firebase.firestore.CollectionReference */ history = db.collection(proce
 const /* firebase.firestore.CollectionReference */ eklers = db.collection(process.env.VUE_APP_FIREBASE_COLL_EKLERS);
 
 // Use pagination cursors: https://firebase.google.com/docs/firestore/query-data/query-cursors
-let historyLoad = {
+const historyLoad = {
   pageCursor: null,
-  hasMore: true
+  hasMore: true,
+  realtimeAddCallback: null,
+
+  // NOTE: As in the docs: (but I want to skip this behavior)
+  //     The first query snapshot contains added events for all existing documents that match the query.
+  //     This is because you're getting a set of changes that bring your query snapshot current with the initial state of the query.
+  //     This allows you, for instance, to directly populate your UI from the changes you receive in the first query snapshot,
+  //     without needing to add special logic for handling the initial state.
+  realtimeSkippedFirst: false
+};
+
+const eklersLoad = {
+  realtimeChangeCallback: null,
+  realtimeSkippedFirst: false
+};
+
+const usersLoad = {
+  realtimeChangeCallback: null,
+  realtimeSkippedFirst: false
+};
+
+const initHistoryRealtime = () => {
+  if (historyLoad.realtimeAddCallback) {
+    logger.info('History: Listen for realtime updates');
+
+    history.onSnapshot(snapshot => {
+      // skip the first snapshot ass we already have the docs
+      if (!historyLoad.realtimeSkippedFirst) {
+        historyLoad.realtimeSkippedFirst = true;
+        return;
+      }
+      snapshot.docChanges().forEach(change => {
+        // for history only add can happen
+        // no need to listen for change.type === 'modified' and change.type === 'removed'
+        if (change.type === 'added') {
+          const history = change.doc.data();
+          historyLoad.realtimeAddCallback(history);
+          logger.info('History: Added new record', history);
+        }
+      });
+    });
+  }
+};
+
+const initEklersRealtime = () => {
+  if (eklersLoad.realtimeChangeCallback) {
+    logger.info('Eklers: Listen for realtime updates');
+
+    eklers.onSnapshot(snapshot => {
+      // skip the first snapshot ass we already have the docs
+      if (!eklersLoad.realtimeSkippedFirst) {
+        eklersLoad.realtimeSkippedFirst = true;
+        return;
+      }
+
+      // this is as if the whole collection is fetched now
+      const eklersDocs = [];
+      snapshot.forEach(doc => {
+        eklersDocs.push({ id: doc.id, owes: { ...doc.data() } });
+      });
+      logger.info(`Eklers: Updated ${eklersDocs.length}`);
+
+      eklersLoad.realtimeChangeCallback(eklersDocs);
+    });
+  }
+};
+const initUsersRealtime = () => {
+  if (usersLoad.realtimeChangeCallback) {
+    logger.info('Users: Listen for realtime updates');
+
+    users.onSnapshot(snapshot => {
+      // skip the first snapshot ass we already have the docs
+      if (!usersLoad.realtimeSkippedFirst) {
+        usersLoad.realtimeSkippedFirst = true;
+        return;
+      }
+
+      // this is as if the whole collection is fetched now
+      const usersDocs = [];
+      snapshot.forEach(doc => {
+        usersDocs.push({ id: doc.id, ...doc.data() });
+      });
+      logger.info(`Users: Updated ${usersDocs.length}`);
+
+      usersLoad.realtimeChangeCallback(usersDocs);
+    });
+  }
 };
 
 export default {
-  init() {
+  /**
+   * @param {Function} historyAddCallback
+   * @param {Function} eklersChangeCallback
+   * @param {Function} usersChangeCallback
+   */
+  init({ historyAddCallback, eklersChangeCallback, usersChangeCallback }) {
     logger.info('DB init');
+
+    historyLoad.realtimeAddCallback = historyAddCallback;
+    eklersLoad.realtimeChangeCallback = eklersChangeCallback;
+    usersLoad.realtimeChangeCallback = usersChangeCallback;
   },
 
   /**
@@ -30,7 +125,9 @@ export default {
         usersDocs.push({ id: doc.id, ...doc.data() });
       });
 
-      logger.info(`Users: Loaded ${usersDocs.length} users`);
+      logger.info(`Users: Loaded ${usersDocs.length}`);
+
+      initUsersRealtime();
 
       return usersDocs;
     });
@@ -82,7 +179,13 @@ export default {
         historyLoad.hasMore = false;
       }
 
-      logger.info(`History: Fetched new ${historyDocs.length} records`);
+      logger.info(`History: Fetched new ${historyDocs.length} records, hasMore: ${historyLoad.hasMore}`);
+
+      // if all of the history is added we can start listening to changes
+      if (!historyLoad.hasMore) {
+        initHistoryRealtime();
+      }
+
       return {
         history: historyDocs,
         hasMore: historyLoad.hasMore
@@ -101,7 +204,9 @@ export default {
         eklersDocs.push({ id: doc.id, owes: { ...doc.data() } });
       });
 
-      logger.info(`Eklers: Loaded ${eklersDocs.length} eklers`);
+      logger.info(`Eklers: Loaded ${eklersDocs.length}`);
+
+      initEklersRealtime();
 
       return eklersDocs;
     });

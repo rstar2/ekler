@@ -65,9 +65,12 @@ module.exports = (db, collEklers, collHistory) => {
       } else if (!toFromCount) {
         // 2. check if there's already relation "to=>from" and if not create a new "from=>to" one
 
-        await eklers.doc(from).set({
-          [to]: count
-        });
+        await eklers.doc(from).set(
+          {
+            [to]: count
+          },
+          { merge: true }
+        );
       } else {
         // 3. so there's already "to=>from" - this means to update/remove it
         // lets say it's 5
@@ -85,9 +88,12 @@ module.exports = (db, collEklers, collHistory) => {
 
           if (newToFromCount < 0) {
             // if count is 7 then newToFromCount will be -2, e.g. create opposite relation "from=>to"
-            await eklers.doc(from).set({
-              [to]: -newToFromCount
-            });
+            await eklers.doc(from).set(
+              {
+                [to]: -newToFromCount
+              },
+              { merge: true }
+            );
           }
         }
       }
