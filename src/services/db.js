@@ -1,8 +1,9 @@
 import logger from '../lib/logger';
 import { db, functions } from '../lib/firebase';
 
-// get the Firebase function to call
-const eklerAddFn = functions.httpsCallable('dbAddEkler_app');
+// get the Firebase functions to call
+const eklersAddFn = functions.httpsCallable('addEklers');
+const eklersCheckoutFn = functions.httpsCallable('checkoutEklers');
 
 const /* firebase.firestore.CollectionReference */ users = db.collection(process.env.VUE_APP_FIREBASE_COLL_USERS);
 const /* firebase.firestore.CollectionReference */ history = db.collection(process.env.VUE_APP_FIREBASE_COLL_HISTORY);
@@ -214,11 +215,24 @@ export default {
 
   /**
    * Add an Ekler
+   * @param {String} from
+   * @param {String} to
    * @return {Promise<>}
    */
   eklersAdd(from, to, count = 1) {
     // the Firebase Firestore DB is protected from unauthorized add/update/delete
     // so use a Firebase Callable Function
-    return eklerAddFn({ from, to, count }).then(result => result.data);
+    return eklersAddFn({ from, to, count }).then(result => result.data);
+  },
+
+  /**
+   * Request to checkout 'own' eklers from someone
+   * @param {String} from
+   * @param {String} to
+   */
+  eklersCheckout(from, to) {
+    // the Firebase Firestore DB is protected from unauthorized add/update/delete
+    // so use a Firebase Callable Function
+    return eklersCheckoutFn({ from, to }).then(result => result.data);
   }
 };

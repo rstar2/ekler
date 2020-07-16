@@ -16,7 +16,13 @@
           </marker>
         </defs>
       </svg>
-      <d3-network :net-nodes="nodes" :net-links="links" :options="options" :link-cb="linkCallback" />
+      <d3-network
+        :net-nodes="nodes"
+        :net-links="links"
+        :options="options"
+        :link-cb="linkCallback"
+        @node-click="nodeClick"
+      />
     </v-col>
   </v-row>
 </template>
@@ -93,6 +99,10 @@ export default {
     linkCallback(link) {
       link._svgAttrs = { 'marker-end': 'url(#m-end)' };
       return link;
+    },
+    nodeClick(event, node) {
+      const user = this.users.find(user => user.id === node.id);
+      this.$emit('userClick', user);
     }
   }
 };

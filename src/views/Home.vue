@@ -1,6 +1,6 @@
 <template>
   <v-container class="home">
-    <Eklers v-if="users" :users="users" :authUserId="authId" :eklers="eklers" />
+    <Eklers v-if="users" :users="users" :authUserId="authId" :eklers="eklers" @userClick="onUserClick" />
 
     <v-fab-transition>
       <v-btn v-show="authId" ref="dlgActivator" absolute dark fab bottom right color="primary" class="v-btn--addEklers">
@@ -46,6 +46,9 @@ export default {
     onAddEklers({ to, count }) {
       const from = this.authId;
       this.$store.dispatch('eklersAdd', { from, to, count });
+    },
+    onUserClick(user) {
+      console.log(user);
     }
   }
 };
