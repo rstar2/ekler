@@ -2,6 +2,7 @@
 # First generate a firebase token with ```$ firebase login:ci``` and add it as
 # GitHub secret FIREBASE_TOKEN
 # Second add GitHub secret ENV_FILE_PRODUCTION with list with environment variable properties
+# This means concatenating all the env files ('.env', '.env.local', '.env.production.local')
 
 name: Build and Deploy Hosting
 on:
@@ -26,7 +27,7 @@ jobs:
       
       # create the .env file 
       - name: Create Environment File
-        run: echo "${{ secrets.ENV_FILE_PRODUCTION }}" > ./.env.production.local  
+        run: echo "${{ secrets.ENV_FILE_PRODUCTION }}" > ./.env  
 
       - name: Install Dependencies
         run: npm install

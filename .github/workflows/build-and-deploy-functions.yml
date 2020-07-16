@@ -28,8 +28,9 @@ jobs:
         run: npm install firebase-tools
 
       # Set the Firebase Functions secrets   
-      - name: Add Fibase secrets
-        run: node firebase-env.js
+    # TODO: Test  
+    #   - name: Add Fibase secrets
+    #     run: node firebase-env.js
    
 
       # the 'firebase deploy' command will use the firebase.json file and will build the client app
