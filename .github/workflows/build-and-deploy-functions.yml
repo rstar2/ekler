@@ -1,0 +1,39 @@
+# Build the Client app and deploy it to Firebase hosting
+# First generate a firebase token with ```$ firebase login:ci``` and add it as
+# GitHub secret FIREBASE_TOKEN
+# Second add GitHub secret ENV_FILE_PRODUCTION with list with environment variable properties
+
+name: Build and Deploy Functions
+on:
+  push:
+    branches:
+      - master
+    paths:
+      # including paths
+      - 'functions/**'
+
+jobs:
+
+  build-and-deploy-hosting:
+    name: Build and Deploy Functions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+      
+      - name: Install Dependencies
+        run: npm --prefix functions install
+      
+      - name: Install Firebase CLI
+        run: npm install firebase-tools
+
+      # Set the Firebase Functions secrets   
+      - name: Add Fibase secrets
+        run: node firebase-env.js
+   
+
+      # the 'firebase deploy' command will use the firebase.json file and will build the client app
+      - name: Deploy Functions
+        run: npm run deploy:functions
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
