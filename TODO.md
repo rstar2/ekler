@@ -24,3 +24,7 @@
 - ~~Add add user - create with user/name and predefined password - must be added into the users DB also~~
 - Add delete user - from Authorization and from all DBs
 - Add rename of DB collection/document
+
+## CI/CD
+
+- Add GitHub Actions for building and deploying
