@@ -31,7 +31,7 @@ export default {
   },
   computed: {
     ...mapState(['users', 'eklers']),
-    ...mapGetters(['authId']),
+    ...mapGetters(['authId', 'getEklers']),
     toUsers() {
       let toUsers = this.users;
       // filter the current/owner user
@@ -48,7 +48,25 @@ export default {
       this.$store.dispatch('eklersAdd', { from, to, count });
     },
     onUserClick(user) {
-      console.log(user);
+      // skip if not logged in
+      if (!this.authId) return;
+
+      const userId = user.id;
+      // skip if "owner" logged in user
+      if (userId === this.authId) return;
+
+      const ownerToUser = this.getEklers(this.authId, userId);
+      if (ownerToUser) {
+        // you own eklers to this user
+        console.log('You own', ownerToUser.eklers, 'eklers to', userId);
+        return;
+      }
+
+      const userToOwner = this.getEklers(userId, this.authId);
+      if (userToOwner) {
+        console.log(userId, 'owes you', userToOwner.eklers, 'eklers');
+        return;
+      }
     }
   }
 };

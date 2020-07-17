@@ -70,16 +70,17 @@ export default {
       //  return [{ sid: 4, tid: 5, name: 3 }, ...]
       const links = [];
 
-      this.eklers.forEach(({ /* String */ id: sid, /* Object */ owes }) => {
-        Object.keys(owes).forEach(tid => {
+      this.eklers.forEach(({ /* String */ id: sid, /* Object */ to }) => {
+        Object.keys(to).forEach(tid => {
           let _color;
           if (this.authUserId && (this.authUserId === sid || this.authUserId === tid)) _color = 'orange';
-          links.push({ sid, tid, name: owes[tid], _color });
+          links.push({ sid, tid, name: to[tid].owes, _color });
         });
       });
 
-      // just "specify" so that Vue can reach on it change also, as intenally in D3Network
+      // just "specify" so that Vue can react on its change also, as intenally in D3Network
       // the links are not changed when nodes are
+      // In other words make link update/depend when nodes update
       this.nodes;
 
       return links;

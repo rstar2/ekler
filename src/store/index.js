@@ -73,6 +73,26 @@ const store = new Vuex.Store({
         else user = state.users.find(user => user.id === id);
         return user && user.name;
       };
+    },
+
+    /**
+     * @param {*} state
+     * @return {Function}
+     */
+    getEklers(state) {
+      return (fromId, toId) => {
+        const userEklers = state.eklers.find(({ id }) => id === fromId);
+
+        if (userEklers && userEklers.to[toId]) {
+          // user 'fromId' owns eklers to this user 'toId'
+          return {
+            eklers: userEklers.to[toId].owes,
+            checkout: !!userEklers.to[toId].checkout
+          };
+        }
+
+        return null;
+      };
     }
   },
   mutations: {

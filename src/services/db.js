@@ -68,16 +68,27 @@ const initEklersRealtime = () => {
       }
 
       // this is as if the whole collection is fetched now
-      const eklersDocs = [];
-      snapshot.forEach(doc => {
-        eklersDocs.push({ id: doc.id, owes: { ...doc.data() } });
-      });
+      const eklersDocs = parseEklers(snapshot);
       logger.info(`Eklers: Updated ${eklersDocs.length}`);
 
       eklersLoad.realtimeChangeCallback(eklersDocs);
     });
   }
 };
+
+/**
+ * Parse all eklers
+ * @param {firebase.firestore.DocumentSnapshot} snapshot
+ * @returns {Array}
+ */
+const parseEklers = snapshot => {
+  const eklersDocs = [];
+  snapshot.forEach(doc => {
+    eklersDocs.push({ id: doc.id, to: { ...doc.data() } });
+  });
+  return eklersDocs;
+};
+
 const initUsersRealtime = () => {
   if (usersLoad.realtimeChangeCallback) {
     logger.info('Users: Listen for realtime updates');
@@ -90,15 +101,24 @@ const initUsersRealtime = () => {
       }
 
       // this is as if the whole collection is fetched now
-      const usersDocs = [];
-      snapshot.forEach(doc => {
-        usersDocs.push({ id: doc.id, ...doc.data() });
-      });
+      const usersDocs = parseUsers(snapshot);
       logger.info(`Users: Updated ${usersDocs.length}`);
 
       usersLoad.realtimeChangeCallback(usersDocs);
     });
   }
+};
+/**
+ * Parse all eklers
+ * @param {firebase.firestore.DocumentSnapshot} snapshot
+ * @returns {Array}
+ */
+const parseUsers = snapshot => {
+  const usersDocs = [];
+  snapshot.forEach(doc => {
+    usersDocs.push({ id: doc.id, ...doc.data() });
+  });
+  return usersDocs;
 };
 
 export default {
@@ -121,11 +141,7 @@ export default {
    */
   usersLoad() {
     return users.get().then(snapshot => {
-      const usersDocs = [];
-      snapshot.forEach(doc => {
-        usersDocs.push({ id: doc.id, ...doc.data() });
-      });
-
+      const usersDocs = parseUsers(snapshot);
       logger.info(`Users: Loaded ${usersDocs.length}`);
 
       initUsersRealtime();
@@ -200,11 +216,7 @@ export default {
    */
   eklersLoad() {
     return eklers.get().then(snapshot => {
-      const eklersDocs = [];
-      snapshot.forEach(doc => {
-        eklersDocs.push({ id: doc.id, owes: { ...doc.data() } });
-      });
-
+      const eklersDocs = parseEklers(snapshot);
       logger.info(`Eklers: Loaded ${eklersDocs.length}`);
 
       initEklersRealtime();
