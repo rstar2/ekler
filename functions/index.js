@@ -109,7 +109,7 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
   // add in the 'history' collection finally
   await db.addHistory(data);
 
-  console.log('Checked-out Eklers :', data);
+  console.log('Checked-out  Eklers :', data);
 
   return true;
 });
