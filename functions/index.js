@@ -70,7 +70,7 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
   await db.addEkler(data);
 
   // add in the 'history' collection finally
-  await db.addHistory(data);
+  await db.addHistory(db.history.ADD, data);
 
   console.log('Added Eklers :', data);
 
@@ -107,7 +107,7 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
   //   await db.addEkler(data);
 
   // add in the 'history' collection finally
-  await db.addHistory(data);
+  await db.addHistory(db.history.CHECKOUT, data);
 
   console.log('Checked-out  Eklers :', data);
 

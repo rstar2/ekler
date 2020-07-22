@@ -239,6 +239,17 @@ const store = new Vuex.Store({
     async eklersAdd(context, payload) {
       const { from, to, count } = payload;
       await db.eklersAdd(from, to, count);
+    },
+
+    /**
+     * Add/Owe eklers
+     * @param {Vuex.ActionContext} context
+     * @param {String} userId
+     * @return {Promise}
+     */
+    async eklersCheckout(context, userId) {
+      const { state } = context;
+      await db.eklersCheckout(state.authUser.id, userId);
     }
   }
 });

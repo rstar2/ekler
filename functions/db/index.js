@@ -113,13 +113,15 @@ module.exports = (db, collEklers, collHistory) => {
 
     /**
      * Add new "history-record" when a new Ekler is added
+     * @param {String} type
+     * @param {{ to:String, from:String, count:Number, createdAt:Number? }} data
      * @return {Promise}
      */
-    async addHistory({ to, from, count, createdAt }) {
+    async addHistory(type, { from, to, count, createdAt }) {
       createdAt = createdAt || Date.now();
 
       // NOTE: Behind the scenes, .add(...) and .doc().set(...) are completely equivalent
-      return history.add({ to, from, count, createdAt });
+      return history.add(prune({ type, from, to, count, createdAt }));
       // .then(/*FirebaseFirestore.DocumentReference>*/ docRef => docRef.get())
       // .then(
       //   /*FirebaseFirestore.DocumentSnapshot>*/ docSnapshot => {
@@ -128,6 +130,14 @@ module.exports = (db, collEklers, collHistory) => {
       //     return { id: docSnapshot.id, ...data };
       //   }
       // );
+    },
+
+    /**
+     * History enum types
+     */
+    history: {
+      ADD: 'ADD',
+      CHECKOUT: 'CHECKOUT'
     }
   };
 };

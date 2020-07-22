@@ -71,7 +71,7 @@ export default {
       required: true
     }
   },
-  // use the 'show' property for a v-model
+  // use the 'show' property for v-model
   model: {
     prop: 'show',
     event: 'close'

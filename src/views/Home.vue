@@ -9,6 +9,14 @@
     </v-fab-transition>
 
     <DialogAddEklers :users="toUsers" :activator="$refs.dlgActivator" @action="onAddEklers" />
+
+    <DialogNotification v-model="ownerToUserMsg" title="You owe!!!" />
+    <DialogConfirmation
+      :text="userToOwnerMsg"
+      title="Chekout"
+      @close="checkout.userId = null"
+      @confirm="doCheckoutConfirm()"
+    />
   </v-container>
 </template>
 
@@ -17,16 +25,24 @@ import { mapState, mapGetters } from 'vuex';
 
 import Eklers from '@/components/Eklers.vue';
 import DialogAddEklers from '@/components/DialogAddEklers.vue';
+import DialogNotification from '@/components/DialogNotification.vue';
+import DialogConfirmation from '@/components/DialogConfirmation.vue';
 
 export default {
   name: 'Home',
   components: {
     Eklers,
-    DialogAddEklers
+    DialogAddEklers,
+    DialogNotification,
+    DialogConfirmation
   },
   data() {
     return {
-      dialog: false
+      ownerToUserMsg: '',
+      checkout: {
+        userId: null,
+        eklers: 0
+      }
     };
   },
   computed: {
@@ -37,6 +53,11 @@ export default {
       // filter the current/owner user
       if (this.authId) toUsers = toUsers.filter(user => user.id !== this.authId);
       return toUsers;
+    },
+    userToOwnerMsg() {
+      if (!this.checkout.userId) return '';
+
+      return `${this.checkout.userId} owes you ${this.checkout.eklers} eklers`;
     }
   },
   mounted() {
@@ -59,14 +80,22 @@ export default {
       if (ownerToUser) {
         // you own eklers to this user
         console.log('You own', ownerToUser.eklers, 'eklers to', userId);
+        // show a notification dialog
+        this.ownerToUserMsg = `You own ${ownerToUser.eklers} eklers to ${userId}`;
         return;
       }
 
       const userToOwner = this.getEklers(userId, this.authId);
       if (userToOwner) {
         console.log(userId, 'owes you', userToOwner.eklers, 'eklers');
+        this.checkout.userId = userId;
+        this.checkout.eklers = userToOwner.eklers;
         return;
       }
+    },
+
+    doCheckoutConfirm() {
+      this.$store.dispatch('eklersCheckout', this.checkout.userId);
     }
   }
 };

@@ -239,12 +239,14 @@ export default {
 
   /**
    * Request to checkout 'own' eklers from someone
-   * @param {String} from
-   * @param {String} to
+   * @param {String} from user requesting the checkout, e.g. the one to which the other user owes eklers
+   * @param {String} to user being 'checkouted', e.g. the one owning the eklers
    */
   eklersCheckout(from, to) {
     // the Firebase Firestore DB is protected from unauthorized add/update/delete
     // so use a Firebase Callable Function
+    console.log('Checkout func', from, '->', to);
+
     return eklersCheckoutFn({ from, to }).then(result => result.data);
   }
 };
