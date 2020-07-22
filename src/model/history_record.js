@@ -3,21 +3,30 @@ export default class HistoryRecord {
    * Create new history record from a DB instance
    * @return {HistoryRecord}
    */
-  static fromDB({ from, to, count, createdAt }) {
-    return new HistoryRecord(from, to, count, createdAt);
+  static fromDB({ type, from, to, count, createdAt }) {
+    return new HistoryRecord(type, from, to, count, createdAt);
   }
 
   /**
+   * @param {String} type
    * @param {String} from
    * @param {String} to
    * @param {Number} count
    * @param {Number} createdAt
    */
-  constructor(from, to, count, createdAt) {
+  constructor(type, from, to, count, createdAt) {
+    this._type = type;
     this._from = from;
     this._to = to;
     this._count = count;
     this._createdAt = createdAt;
+  }
+
+  /**
+   * @return {String}
+   */
+  get type() {
+    return this._type;
   }
 
   /**

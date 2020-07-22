@@ -7,7 +7,7 @@
           <v-icon v-text="record.from"></v-icon>
         </v-list-item-icon> -->
         <v-list-item-content>
-          <v-list-item-title v-text="getRecordTitle(record)" />
+          <v-list-item-title v-text="getRecordTitle(record)" :class="getRecordClass(record)" />
           <v-list-item-subtitle v-text="getRecordSubtitle(record)" />
           <v-divider />
         </v-list-item-content>
@@ -18,6 +18,7 @@
 
 <script>
 import { mapState, mapGetters } from 'vuex';
+import { pluralize } from '../lib/util.js';
 
 export default {
   name: 'History',
@@ -30,13 +31,20 @@ export default {
   },
   methods: {
     /**
+     * @param {String} type
      * @param {String} from
      * @param {String} to
      */
-    getRecordTitle({ from, to, count }) {
+    getRecordTitle({ type, from, to, count }) {
       from = this.getUserName(from) || from;
       to = this.getUserName(to) || to;
-      return `${from} owes ${to} ${count} ekler${count > 1 ? 's' : ''}`;
+
+      switch (type) {
+        case 'ADD':
+          return `${from} owes ${to} ${count} ${pluralize(count, 'ekler')}}`;
+        case 'CHECKOUT':
+          return `${from} wants his/hers eklers from ${to}`;
+      }
     },
     /**
      * @param {String} from
@@ -44,6 +52,14 @@ export default {
      */
     getRecordSubtitle({ createdAt }) {
       return new Date(createdAt).toLocaleString();
+    },
+    /**
+     * @param {String} type
+     */
+    getRecordClass({ type }) {
+      return {
+        'primary--text': type === 'CHECKOUT'
+      };
     }
   }
 };
