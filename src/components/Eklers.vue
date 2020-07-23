@@ -42,6 +42,10 @@ export default {
       type: Array,
       required: true
     },
+    checkouts: {
+      type: Object,
+      required: true
+    },
     users: {
       type: Array,
       required: true
@@ -54,15 +58,21 @@ export default {
   computed: {
     nodes() {
       // return [ { id: 1, name: 'my node 1' }, ....]
-      const nodes = this.users.map(user => ({ id: user.id, name: user.name }));
-      if (this.authUserId) {
-        nodes.find(node => {
-          if (node.id === this.authUserId) {
-            node._color = 'orange';
-            return true;
-          }
-        });
-      }
+      const nodes = this.users.map(user => {
+        const node = { id: user.id, name: user.name };
+
+        // mark the authorized user
+        if (this.authUserId && node.id === this.authUserId) {
+          node._color = 'orange';
+        }
+
+        // mark all checkout users
+        if (this.checkouts[node.id]) {
+          node._color = 'red';
+        }
+
+        return node;
+      });
 
       return nodes;
     },
@@ -74,6 +84,9 @@ export default {
         Object.keys(to).forEach(tid => {
           let _color;
           if (this.authUserId && (this.authUserId === sid || this.authUserId === tid)) _color = 'orange';
+
+          if (to[tid].checkout) _color = 'red';
+
           links.push({ sid, tid, name: to[tid].owes, _color });
         });
       });

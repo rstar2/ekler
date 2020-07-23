@@ -1,6 +1,13 @@
 <template>
   <v-container class="home">
-    <Eklers v-if="users" :users="users" :authUserId="authId" :eklers="eklers" @userClick="onUserClick" />
+    <Eklers
+      v-if="users"
+      :users="users"
+      :authUserId="authId"
+      :eklers="eklers"
+      :checkouts="checkouts"
+      @userClick="onUserClick"
+    />
 
     <v-fab-transition>
       <v-btn v-show="authId" ref="dlgActivator" absolute dark fab bottom right color="primary" class="v-btn--addEklers">
@@ -46,7 +53,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(['users', 'eklers']),
+    ...mapState(['users', 'eklers', 'checkouts']),
     ...mapGetters(['authId', 'getEklers']),
     toUsers() {
       let toUsers = this.users;

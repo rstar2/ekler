@@ -41,7 +41,7 @@ export default {
 
       switch (type) {
         case 'ADD':
-          return `${from} owes ${to} ${count} ${pluralize(count, 'ekler')}}`;
+          return `${from} owes ${to} ${count} ${pluralize(count, 'ekler')}`;
         case 'CHECKOUT':
           return `${from} wants his/hers eklers from ${to}`;
       }

@@ -67,12 +67,12 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
   }
 
   // add in the 'eklers' collection
-  await db.addEklers(data);
+  const success = await db.addEklers(data);
 
-  // add in the 'history' collection finally
-  await db.addHistory(db.history.ADD, data);
-
-  console.log('Added Eklers :', data);
+  if (success) {
+    // add in the 'history' collection finally
+    await db.addHistory(db.history.ADD, data);
+  }
 
   return true;
 });
@@ -104,12 +104,12 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
   }
 
   // checkout in the 'eklers' collection
-  await db.checkoutEklers(data);
+  const success = await db.checkoutEklers(data);
 
-  // add in the 'history' collection finally
-  await db.addHistory(db.history.CHECKOUT, data);
-
-  console.log('Checked-out  Eklers :', data);
+  if (success) {
+    // add in the 'history' collection finally
+    await db.addHistory(db.history.CHECKOUT, data);
+  }
 
   return true;
 });

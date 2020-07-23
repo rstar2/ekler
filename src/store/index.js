@@ -22,7 +22,9 @@ const store = new Vuex.Store({
 
     /* HistoryRecord[] */ history: [],
 
-    /* Array */ eklers: []
+    /* Array */ eklers: [],
+
+    /* Object */ checkouts: {}
   },
   getters: {
     /**
@@ -93,6 +95,14 @@ const store = new Vuex.Store({
 
         return null;
       };
+    },
+
+    /**
+     * @param {*} state
+     * @return {Function}
+     */
+    isBlocked(state) {
+      return userId => !!state.checkouts[userId];
     }
   },
   mutations: {
@@ -142,6 +152,14 @@ const store = new Vuex.Store({
     eklersSet(state, eklers) {
       // set the eklers
       state.eklers = eklers;
+    },
+    /**
+     * @param {*} state
+     * @param {{id: String}[]} users
+     */
+    checkoutsSet(state, checkouts) {
+      // set the eklers
+      state.checkouts = checkouts;
     }
   },
   actions: {
@@ -226,8 +244,9 @@ const store = new Vuex.Store({
      * @return {Promise}
      */
     async eklersLoad({ commit }) {
-      const eklers = await db.eklersLoad();
+      const { eklers, checkouts } = await db.eklersLoad();
       commit('eklersSet', eklers);
+      commit('checkoutsSet', checkouts);
     },
 
     /**
@@ -291,8 +310,9 @@ db.init({
   historyAddCallback: historyRec => {
     store.commit('historyAdded', [HistoryRecord.fromDB(historyRec)]);
   },
-  eklersChangeCallback: eklers => {
+  eklersChangeCallback: (eklers, checkouts) => {
     store.commit('eklersSet', eklers);
+    store.commit('checkoutsSet', checkouts);
   },
   usersChangeCallback: users => {
     store.commit('usersSet', users);

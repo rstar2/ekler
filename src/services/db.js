@@ -68,10 +68,10 @@ const initEklersRealtime = () => {
       }
 
       // this is as if the whole collection is fetched now
-      const eklersDocs = parseEklers(snapshot);
+      const { eklersDocs, checkoutsDocs } = parseEklers(snapshot);
       logger.info(`Eklers: Updated ${eklersDocs.length}`);
 
-      eklersLoad.realtimeChangeCallback(eklersDocs);
+      eklersLoad.realtimeChangeCallback(eklersDocs, checkoutsDocs);
     });
   }
 };
@@ -79,14 +79,21 @@ const initEklersRealtime = () => {
 /**
  * Parse all eklers
  * @param {firebase.firestore.DocumentSnapshot} snapshot
- * @returns {Array}
+ * @returns {{ eklersDocs:Array, checkoutsDocs:Array }}
  */
 const parseEklers = snapshot => {
   const eklersDocs = [];
+  const checkoutsDocs = {};
   snapshot.forEach(doc => {
-    eklersDocs.push({ id: doc.id, to: { ...doc.data() } });
+    const data = doc.data();
+    eklersDocs.push({ id: doc.id, to: { ...data } });
+
+    Object.keys(data).forEach(userId => {
+      const user = data[userId];
+      if (user.checkout) checkoutsDocs[doc.id] = true;
+    });
   });
-  return eklersDocs;
+  return { eklersDocs, checkoutsDocs };
 };
 
 const initUsersRealtime = () => {
@@ -216,12 +223,12 @@ export default {
    */
   eklersLoad() {
     return eklers.get().then(snapshot => {
-      const eklersDocs = parseEklers(snapshot);
+      const { eklersDocs, checkoutsDocs } = parseEklers(snapshot);
       logger.info(`Eklers: Loaded ${eklersDocs.length}`);
 
       initEklersRealtime();
 
-      return eklersDocs;
+      return { eklers: eklersDocs, checkouts: checkoutsDocs };
     });
   },
 

@@ -137,7 +137,7 @@ module.exports = (db, collEklers, collHistory) => {
 
       if (toFromCount.checkout) {
         console.log(`${from} has already requested/checkout his eklers from ${to}`);
-        return true;
+        return false;
       }
 
       await eklers.doc(to).update({
