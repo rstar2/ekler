@@ -67,7 +67,7 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
   }
 
   // add in the 'eklers' collection
-  await db.addEkler(data);
+  await db.addEklers(data);
 
   // add in the 'history' collection finally
   await db.addHistory(db.history.ADD, data);
@@ -103,8 +103,8 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('invalid-argument', errorInvalidArgument);
   }
 
-  // add in the 'eklers' collection
-  //   await db.addEkler(data);
+  // checkout in the 'eklers' collection
+  await db.checkoutEklers(data);
 
   // add in the 'history' collection finally
   await db.addHistory(db.history.CHECKOUT, data);

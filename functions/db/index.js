@@ -38,10 +38,12 @@ module.exports = (db, collEklers, collHistory) => {
 
   return {
     /**
-     * Add new "history-record" when a new Ekler is added
+     * Add new owed eklers from someone to someone
+     * @param {String} from user to add (e.g. owe new) eklers to the other 'to'
+     * @param {String} to user to whom someone add (e.g. owe new) eklers
      * @return {Promise}
      */
-    async addEkler({ to, from, count }) {
+    async addEklers({ from, to, count }) {
       if (!count || count < 0) throw new Error('Count must be positive number');
 
       const fromUser = await eklers
@@ -60,14 +62,19 @@ module.exports = (db, collEklers, collHistory) => {
       // 1. check if there's already a relation "from=>to"
       if (fromToCount) {
         await eklers.doc(from).update({
-          [to]: fromToCount + count
+          [to]: {
+            owes: fromToCount.owes + count,
+            checkout: !!fromToCount.checkout
+          }
         });
       } else if (!toFromCount) {
         // 2. check if there's already relation "to=>from" and if not create a new "from=>to" one
 
         await eklers.doc(from).set(
           {
-            [to]: count
+            [to]: {
+              owes: count
+            }
           },
           { merge: true }
         );
@@ -75,12 +82,15 @@ module.exports = (db, collEklers, collHistory) => {
         // 3. so there's already "to=>from" - this means to update/remove it
         // lets say it's 5
 
-        const newToFromCount = toFromCount - count;
+        const newToFromCount = toFromCount.owes - count;
 
         if (newToFromCount > 0) {
           // if count is 3 then newToFromCount will be 2
           await eklers.doc(to).update({
-            [from]: newToFromCount
+            [from]: {
+              owes: newToFromCount,
+              checkout: !!toFromCount.checkout
+            }
           });
         } else {
           // no "to=>from" relation any more
@@ -90,7 +100,9 @@ module.exports = (db, collEklers, collHistory) => {
             // if count is 7 then newToFromCount will be -2, e.g. create opposite relation "from=>to"
             await eklers.doc(from).set(
               {
-                [to]: -newToFromCount
+                [to]: {
+                  owes: -newToFromCount
+                }
               },
               { merge: true }
             );
@@ -99,16 +111,45 @@ module.exports = (db, collEklers, collHistory) => {
       }
 
       return true;
+    },
 
-      //   return eklers.add({ to, from, count, createdAt });
-      // .then(/*FirebaseFirestore.DocumentReference>*/ docRef => docRef.get())
-      // .then(
-      //   /*FirebaseFirestore.DocumentSnapshot>*/ docSnapshot => {
-      //     const data = docSnapshot.data();
+    /**
+     * Checkout (request owed) eklers from someone
+     * @param {String} from user who wants/requests his/hers owed eklers
+     * @param {String} to user (owing the eklers) from whom the other 'from' user requests his eklers
+     * @return {Promise}
+     */
+    async checkoutEklers({ from, to }) {
+      const toUser = await eklers
+        .doc(to)
+        .get()
+        .then(docSnapshot => docSnapshot.data());
 
-      //     return { id: docSnapshot.id, ...data };
-      //   }
-      // );
+      if (!toUser) throw new Error(`${to} is not owing any eklers to anybody`);
+
+      const toFromCount = toUser[from];
+
+      if (!toFromCount) throw new Error(`${to} is not owing any eklers to ${from}`);
+
+      const owedEklers = toFromCount.owes;
+
+      if (!owedEklers) throw new Error(`${to} is not owing any eklers to ${from} -internal error`);
+
+      if (toFromCount.checkout) {
+        console.log(`${from} has already requested/checkout his eklers from ${to}`);
+        return true;
+      }
+
+      await eklers.doc(to).update({
+        [from]: {
+          owes: owedEklers,
+          checkout: true
+        }
+      });
+
+      console.log(`${from} requested/checkout his eklers from ${to}`);
+
+      return true;
     },
 
     /**
