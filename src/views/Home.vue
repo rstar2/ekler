@@ -17,7 +17,10 @@
 
     <DialogAddEklers :users="toUsers" :activator="$refs.dlgActivator" @action="onAddEklers" />
 
+    <!-- notification for how many eklers you owe someone else -->
     <DialogNotification v-model="ownerToUserMsg" title="You owe!!!" />
+
+    <!-- notification for how many eklers someone else owe you -->
     <DialogConfirmation
       :text="userToOwnerMsg"
       title="Chekout"
@@ -34,6 +37,8 @@ import Eklers from '@/components/Eklers.vue';
 import DialogAddEklers from '@/components/DialogAddEklers.vue';
 import DialogNotification from '@/components/DialogNotification.vue';
 import DialogConfirmation from '@/components/DialogConfirmation.vue';
+
+import { pluralize } from '../lib/util.js';
 
 export default {
   name: 'Home',
@@ -54,7 +59,7 @@ export default {
   },
   computed: {
     ...mapState(['users', 'eklers', 'checkouts']),
-    ...mapGetters(['authId', 'getEklers']),
+    ...mapGetters(['authId', 'getEklers', 'isBlocked', 'getUserName']),
     toUsers() {
       let toUsers = this.users;
       // filter the current/owner user
@@ -64,7 +69,8 @@ export default {
     userToOwnerMsg() {
       if (!this.checkout.userId) return '';
 
-      return `${this.checkout.userId} owes you ${this.checkout.eklers} eklers`;
+      const count = this.checkout.eklers;
+      return `${this.getUserName(this.checkout.userId)} owes you ${count} ${pluralize(count, 'ekler')}`;
     }
   },
   mounted() {
@@ -72,9 +78,17 @@ export default {
   },
   methods: {
     onAddEklers({ to, count }) {
+      if (this.isBlocked(to)) {
+        this.$notify({
+          text: `User ${this.getUserName(to)} is blocked - needs to give requested eklers`,
+          type: 'error'
+        });
+        return;
+      }
       const from = this.authId;
       this.$store.dispatch('eklersAdd', { from, to, count });
     },
+
     onUserClick(user) {
       // skip if not logged in
       if (!this.authId) return;
@@ -88,16 +102,26 @@ export default {
         // you own eklers to this user
         console.log('You own', ownerToUser.eklers, 'eklers to', userId);
         // show a notification dialog
-        this.ownerToUserMsg = `You own ${ownerToUser.eklers} eklers to ${userId}`;
+        const count = ownerToUser.eklers;
+        this.ownerToUserMsg = `You own ${count} ${pluralize(count, 'ekler')} to ${this.getUserName(userId)}`;
         return;
       }
 
       const userToOwner = this.getEklers(userId, this.authId);
       if (userToOwner) {
         console.log(userId, 'owes you', userToOwner.eklers, 'eklers');
+
+        // if (this.isBlocked(userId)) {
+        //   // he/she is already blocked
+        //   this.$notify({
+        //     text: `User ${this.getUserName(userId)} is blocked - needs to give requested eklers`,
+        //     type: 'error'
+        //   });
+        // } else {
+        // show confirmation dialog
         this.checkout.userId = userId;
         this.checkout.eklers = userToOwner.eklers;
-        return;
+        // }
       }
     },
 
