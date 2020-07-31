@@ -40,6 +40,7 @@ module.exports = {
    * @param {String} collHistory
    */
   init(collUsers, collEklers, collHistory) {
+    console.log("!!! 1", collUsers, collEklers, collHistory)
     // get the Firestore collections
     users = db.collection(collUsers);
     eklers = db.collection(collEklers);

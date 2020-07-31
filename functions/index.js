@@ -19,6 +19,8 @@ const functionsConfig = functions.config();
 // that are set using the firebase-env.js utility
 const { collusers, colleklers, collhistory } = functionsConfig.db;
 
+console.log("!!!", functionsConfig.db)
+
 const db = require('./db');
 db.init(collusers, colleklers, collhistory);
 
