@@ -21,7 +21,6 @@ module.exports.sendMessage = async function(toUid, data) {
     data,
     tokens: fcmTokens
   };
-  
 
   // Send a message to a specific device corresponding to the provided registration token.
   return messaging
