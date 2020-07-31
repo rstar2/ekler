@@ -22,6 +22,8 @@ const { collusers, colleklers, collhistory } = functionsConfig.db;
 const db = require('./db');
 db.init(collusers, colleklers, collhistory);
 
+const messaging = require('./messaging');
+
 /**
  * This is HTTPS callable function
  *
@@ -110,6 +112,11 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
   if (success) {
     // add in the 'history' collection finally
     await db.historyAdd(db.history.CHECKOUT, data);
+
+    await messaging.sendMessage(data.to, {
+      title: 'Checkout',
+      body: 'XXX wants his eklers!!!'
+    });
   }
 
   return true;
