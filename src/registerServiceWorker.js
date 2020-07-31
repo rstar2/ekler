@@ -4,7 +4,8 @@ import Vue from 'vue';
 
 import { register } from 'register-service-worker';
 
-import configurePushNotifications from './configurePushNotifications';
+// import configurePushNotifications from './configurePushNotifications';
+import configurePushNotifications from './firebase-configurePushNotifications';
 
 // I. New content notification
 /**

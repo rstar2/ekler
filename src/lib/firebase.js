@@ -3,10 +3,14 @@ import firebase from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
 import 'firebase/functions';
+import 'firebase/messaging';
 
 const projectId = process.env.VUE_APP_FIREBASE_PROJECT_ID;
 const apiKey = process.env.VUE_APP_FIREBASE_API_KEY;
+
+// needed to init the messaging service
 const messagingSenderId = process.env.VUE_APP_FIREBASE_SENDER_ID;
+const appId = process.env.VUE_APP_FIREBASE_APP_ID;
 
 // Initialize Firebase
 const config = {
@@ -18,10 +22,12 @@ const config = {
   authDomain: `${projectId}.firebaseapp.com`,
   databaseURL: `https://${projectId}.firebaseio.com`,
   storageBucket: `${projectId}.appspot.com`,
-  messagingSenderId
+  messagingSenderId,
+  appId
 };
 firebase.initializeApp(config);
 
+const messaging = firebase.messaging();
 const db = firebase.firestore();
 const functions = firebase.functions();
 const auth = firebase.auth();
@@ -41,5 +47,5 @@ if (process.env.VUE_APP_FIREBASE_OFFLINE_SUPPORT === 'true') {
   // Subsequent queries will use persistence, if it was enabled successfully
 }
 
-export { db, functions, auth, GoogleAuthProvider };
+export { messaging, db, functions, auth, GoogleAuthProvider };
 export default firebase;

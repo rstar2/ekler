@@ -18,6 +18,9 @@
 - Add "Loading" state where needed on async actions
 - Add real CSS theme - active route CSS-class also to be included
 - Add history-load pagination and virtual scroll
+- Add avatars
+   - Allow setting/merging Jira/Confluence account-email
+   - Show avatars with the Jira endpoint (it will work if user is logged in Jira at the moment)
 
 ## CLI
 
@@ -27,4 +30,4 @@
 
 ## CI/CD
 
-- Add GitHub Actions for building and deploying
+- ~~Add GitHub Actions for building and deploying~~

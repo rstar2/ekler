@@ -1,5 +1,7 @@
+const DumpVueEnvVarsWebpackPlugin = require('./DumpVueEnvVarsWebpackPlugin');
+
 module.exports = {
-  transpileDependencies: ["vuetify"],
+  transpileDependencies: ['vuetify'],
   pwa: {
     // NOTE: match these with the ones written in 'public/manifest.json'
     // These are for Apple iOS
@@ -23,5 +25,11 @@ module.exports = {
       swSrc: 'src/service-worker.js'
       // ...other Workbox options...
     }
+  },
+  configureWebpack: {
+    plugins: [
+      // dump/export the env variables
+      new DumpVueEnvVarsWebpackPlugin({ filename: 'service-worker-env.js' })
+    ]
   }
 };

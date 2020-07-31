@@ -43,3 +43,11 @@ vue add vuetify
 npm run deploy
 ```
 
+## Usage 
+
+### Create new user
+
+```bash
+node cli/index.js db-add-user --email rumenn@qnext.com --password pass123 --name "Rumen Neshev" --title dev
+
+```

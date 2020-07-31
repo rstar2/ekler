@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* global workbox:true */
+/* global importScripts:true, firebase: true */
 
 /**
  * @type {ServiceWorker} self
@@ -31,62 +31,115 @@ self.addEventListener('message', event => {
 });
 
 // III. TODO Push notifications
-// Again some part is in 'registerServiceWorker.js' file. Also finally the browser's
-// Notifications API is used so proper permissions have to be requested and granted
-// Like in // https://www.blog.plint-sites.nl/how-to-add-push-notifications-to-a-progressive-web-app/
+// Again some part is in 'registerServiceWorker.js', more specifically in 'firebase-configurePushNotifications.js' file.
 
-// Listen to Push events
-self.addEventListener('push', event => {
-  const body = event.data.text();
-  console.log(`[Service Worker] PushMessage received: "${body}"`);
+// For Firebase Cloud Messaging setting it up is a little different
+// https://firebase.google.com/docs/cloud-messaging/js/client?authuser=0
+// Whole demo: https://github.com/firebase/quickstart-js/blob/2f2fa6913d/messaging/firebase-messaging-sw.js
 
-  // There are multiple options tat can be used
-  // https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification
-  // https://tests.peter.sh/notification-generator/
-  const title = 'Ekler';
-  const options = {
-    body,
-    icon: 'images/icon.png',
-    image: 'images/image.png',
-    badge: 'images/badge.png',
-    vibrate: [300, 200, 300],
+// 1 (Either 1.1 or 1.2)
 
-    actions: [
-      { action: 'explore', title: 'Explore this new world', icon: 'images/checkmark.png' },
-      { action: 'close', title: 'Close notification', icon: 'images/xmark.png' }
-    ],
+// 1.1 - start
+// // These scripts are made available when the app is served or deployed on Firebase Hosting
+// // If you do not serve/host your project using Firebase Hosting see https://firebase.google.com/docs/web/setup
+// importScripts('/__/firebase/7.17.1/firebase-app.js');
+// importScripts('/__/firebase/7.17.1/firebase-messaging.js');
+// importScripts('/__/firebase/init.js');
+// 1.1 - end
 
-    // arbitrary data, can be any type
-    data: {
-      xxx: 111,
-      yyy: 222
-    }
+// 1.2 - start
+// Give the service worker access to Firebase Messaging.
+// Note that you can only use Firebase Messaging here, other Firebase libraries
+// are not available in the service worker.
+importScripts('https://www.gstatic.com/firebasejs/7.17.1/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/7.17.1/firebase-messaging.js');
+
+// Pass these as env variables (they are not "private" info but like this its not very scalable/customizable as source for another app)
+// For this a webpack plugin is used to add the env variables to this created on build 'service-worker-env.js' file
+importScripts('service-worker-env.js'); // this file should have all the vars declared
+const projectId = process.env.VUE_APP_FIREBASE_PROJECT_ID;
+const apiKey = process.env.VUE_APP_FIREBASE_API_KEY;
+const messagingSenderId = process.env.VUE_APP_FIREBASE_SENDER_ID;
+const appId = process.env.VUE_APP_FIREBASE_APP_ID;
+
+// Initialize the Firebase app in the service worker by passing in your app's Firebase config object.
+const config = {
+  apiKey,
+  projectId,
+  // authDomain has to be changed when using real production custom domain,
+  // and when this custom domain is added in the list of authorized domains in Firebase Console
+  // Also in Google Console it should be in the whitelist of the redirect URLs
+  authDomain: `${projectId}.firebaseapp.com`,
+  databaseURL: `https://${projectId}.firebaseio.com`,
+  storageBucket: `${projectId}.appspot.com`,
+  messagingSenderId,
+  appId
+};
+firebase.initializeApp(config);
+
+// 1.2 - end
+
+// 2.
+// Retrieve an instance of Firebase Messaging so that it can handle background
+// messages.
+const messaging = firebase.messaging();
+
+// If you would like to customize notifications that are received in the
+// background (Web app is closed or not in browser focus) then you should
+// implement this optional method.
+messaging.setBackgroundMessageHandler(message => {
+  console.log('Received a "background" message', message);
+
+  // NOTE: If you set 'notification' field in your message payload,
+  // your setBackgroundMessageHandler callback is not called,
+  // and instead the SDK displays a notification based on your message.
+
+  // NOTE: The PushNotification requires a Notification to be shown otherwise the browser
+  // will show one on default "This side has been updated in the background"
+
+  const { from, priority, data } = message;
+  // Customize notification here
+  const notificationTitle = data.title;
+  const notificationOptions = {
+    body: `From ${from} and priority ${priority} : ${data.body}`,
+    icon: '/firebase-logo.png'
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Listen to events interacting with a notification
-self.addEventListener('notificationclose', event => {
-  const notification = event.notification;
-  const xxx = notification.data.xxx;
-  console.log('[Service Worker] Notification closed' + xxx);
-});
-self.addEventListener('notificationclick', event => {
-  console.log('[Service Worker] Notification click Received.');
+// 3. Sending messages using FCM: They should be with specific format:
+//    3.1. If they "notification" type like below, then messaging service will show a Notification implicitly
+//      {
+//          "to" : "{{token}}",
+//          "priority" : "high",
+//          "notification" : {
+//              "title" : "Test",
+//              "body" : "Hi :)",
+//              "click_action": "http://localhost:8081",
+//              "icon": "http://localhost:8081/chrome/chrome-installprocess-128-128.png"
+//          }
+//      }
+//    3.3 But we customize this in the client app if needed by sending messages of the form:
+//        and these messages will be received in the setBackgroundMessageHandler() handler.
+//        Still the PushNotification API requires again a Notification to be shown ti the user,
+//        so that no "hidden" background action can be done
+//      {
+//        "to" : "{{token}}",
+//          "priority" : "high",
+//          "data" : {
+//              "whatever": "yes",
+//              "title" : "Test",
+//              "body" : "Hi :)",
+//              "click_action": "http://localhost:8081",
+//              "icon": "http://localhost:8081/chrome/chrome-installprocess-128-128.png"
+//          }
+//      }
 
-  // close notification if desired
-  event.notification.close();
+// Example with cURL :
+// $ curl -X POST -H "Authorization: key={{ serverKey }}" \
+//    -H "Content-Type: application/json" \
+//    -d '{  "to": "{{ token }}",  "notification": {"title": "FCM Message", "body": "This is an FCM Message",    "icon": "./img/icons/android-chrome-192x192.png"  }}' \
+//    https://fcm.googleapis.com/fcm/send
 
-  // if it has actions we can see which one has been clicked
-  const action = event.action;
-  if (action === 'close') {
-    //notification.close();
-  } else {
-    // open a new window
-    event.waitUntil(clients.openWindow('https://developers.google.com/web/'));
-  }
-});
-
-// for Firebase Cloud Messaging it is a little different
-// https://firebase.google.com/docs/cloud-messaging/js/client?authuser=0
+// Note: {{serverKey}} is taken from the Firebase console (it's not the VAPID public or private key)

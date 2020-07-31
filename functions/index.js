@@ -17,9 +17,10 @@ const functionsConfig = functions.config();
 // These are actually the mapped environment variables
 // VUE_APP_FIREBASE_COLL_HISTORY and VUE_APP_FIREBASE_COLL_EKLERS
 // that are set using the firebase-env.js utility
-const { colleklers, collhistory } = functionsConfig.db;
+const { collusers, colleklers, collhistory } = functionsConfig.db;
 
-const db = require('./db')(admin.firestore(), colleklers, collhistory);
+const db = require('./db');
+db.init(collusers, colleklers, collhistory);
 
 /**
  * This is HTTPS callable function
@@ -67,11 +68,11 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
   }
 
   // add in the 'eklers' collection
-  const success = await db.addEklers(data);
+  const success = await db.eklersAdd(data);
 
   if (success) {
     // add in the 'history' collection finally
-    await db.addHistory(db.history.ADD, data);
+    await db.historyAdd(db.history.ADD, data);
   }
 
   return true;
@@ -93,7 +94,7 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
 
   let errorInvalidArgument;
   if (!data.from) {
-    errorInvalidArgument = 'No "uid" present - cannot checkout Eklers';
+    errorInvalidArgument = 'No "from" present - cannot checkout Eklers';
   } else if (!data.to) {
     errorInvalidArgument = 'No "to" present - cannot checkout Eklers';
   }
@@ -104,12 +105,44 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
   }
 
   // checkout in the 'eklers' collection
-  const success = await db.checkoutEklers(data);
+  const success = await db.eklersCheckout(data);
 
   if (success) {
     // add in the 'history' collection finally
-    await db.addHistory(db.history.CHECKOUT, data);
+    await db.historyAdd(db.history.CHECKOUT, data);
   }
+
+  return true;
+});
+
+/**
+ * This is HTTPS callable function
+ *
+ *Add a user's device-registration-token for FCM messages (e.g. PushNotifications) in Firestore DB.
+ */
+exports.fcmRegisterDevice = functions.https.onCall(async (data, context) => {
+  // Checking that the user is authenticated.
+  if (!context.auth) {
+    // Throwing an HttpsError so that the client gets the error details.
+    throw new functions.https.HttpsError('unauthenticated', 'The function must be called ' + 'while authenticated.');
+  }
+
+  console.log('FCM Register device-token :', data);
+
+  let errorInvalidArgument;
+  if (!data.uid) {
+    errorInvalidArgument = 'No "uid" present - cannot checkout Eklers';
+  } else if (!data.token) {
+    errorInvalidArgument = 'No "token" present - cannot checkout Eklers';
+  }
+  if (errorInvalidArgument) {
+    console.log(errorInvalidArgument);
+    // terminate the function and send response
+    throw new functions.https.HttpsError('invalid-argument', errorInvalidArgument);
+  }
+
+  // store the FCM registration token
+  await db.userAddFCMToken(data.uid, data.token);
 
   return true;
 });
