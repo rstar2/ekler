@@ -21,26 +21,28 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@master
 
+      # Setup custom Node as it will made possible NPM to install global packages
+      # Necessary as it installs them in the Node folder by default, e.g. in /usr/bin, an
+      # we don't have access to white to this folder from the CI
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 10
            
       - name: Install Firebase CLI
-        run: npm install -g firebase-tools      
-
-      - name: Install Dependencies
-        run: npm --prefix functions install
-
-      # create the .env file 
+        run: npm install -g firebase-tools
+        
+      # Create the .env file 
       - name: Create Environment File
         run: echo "${{ secrets.ENV_FILE_PRODUCTION }}" > ./.env
       # Set the Firebase Functions secrets - they will be parsed from the .env file
-      - name: Add Fibase secrets
+      - name: Add Firebase secrets
         run: node firebase-env.js
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-   
+
+      - name: Install Dependencies
+        run: npm --prefix functions install
 
       # the 'firebase deploy' command will use the firebase.json file and will build the client app
       - name: Deploy Functions
