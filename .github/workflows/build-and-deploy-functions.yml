@@ -20,12 +20,17 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
-      
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10
+           
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools      
+
       - name: Install Dependencies
         run: npm --prefix functions install
-      
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
 
       # create the .env file 
       - name: Create Environment File
