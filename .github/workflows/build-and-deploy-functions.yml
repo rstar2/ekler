@@ -38,6 +38,8 @@ jobs:
       # Set the Firebase Functions secrets - they will be parsed from the .env file
       - name: Add Fibase secrets
         run: node firebase-env.js
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
    
 
       # the 'firebase deploy' command will use the firebase.json file and will build the client app

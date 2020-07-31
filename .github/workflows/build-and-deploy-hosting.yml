@@ -24,6 +24,9 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
+
+      - name: Install Firebase CLI
+        run: npm install firebase-tools
       
       # create the .env file 
       - name: Create Environment File
@@ -34,9 +37,6 @@ jobs:
 
       - name: Build
         run: npm run build 
-
-      - name: Install Firebase CLI
-        run: npm install firebase-tools
 
       # the 'firebase deploy' command will use the firebase.json file and will build the client app
       - name: Deploy Hosting
