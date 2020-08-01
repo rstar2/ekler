@@ -55,6 +55,15 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
 
   console.log('Add Eklers :', data);
 
+  const projectId = admin.instanceId().app.options.projectId;
+  console.log('Project ID', projectId);
+
+  const FIREBASE_CONFIG = process.env.FIREBASE_CONFIG && JSON.parse(process.env.FIREBASE_CONFIG);
+  console.log('FIREBASE_CONFIG', FIREBASE_CONFIG);
+
+  console.log('Envs', process.env);
+
+
   let errorInvalidArgument;
   if (!data.from) {
     errorInvalidArgument = 'No "uid" present - cannot add Eklers';
