@@ -75,6 +75,16 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
   if (success) {
     // add in the 'history' collection finally
     await db.historyAdd(db.history.ADD, data);
+
+    await messaging.sendMessage(data.to, {
+      notification: {
+        title: 'You got new eklers',
+        body: 'asdasdasd',
+        icon: './images/notification.png',
+        // TODO: get real app's url (if possible from config otherwise from .env file)
+        clickAction: 'http://localhost:5000'
+      }
+    });
   }
 
   return true;

@@ -127,10 +127,12 @@ const parseUsers = snapshot => {
   const usersDocs = [];
   snapshot.forEach(doc => {
     const user = doc.data();
-    // skip 'testers' in test mode
-    if (!isTestMode || user.title !== 'tester') {
-      usersDocs.push({ id: doc.id, ...user });
+    // skip 'testers' in non-test mode
+    if (!isTestMode && user.title !== 'tester') {
+      return;
     }
+
+    usersDocs.push({ id: doc.id, ...user });
   });
   return usersDocs;
 };

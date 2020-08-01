@@ -7,10 +7,10 @@ module.exports = {
   /**
    * Send a message to all user's assigned FCM device tokens
    * @param {String} toUid
-   * @param {Object} data
+   * @param {admin.messaging.MessagingPayload} payload
    * @param {Boolean} dryRun
    */
-  async sendMessage(toUid, data, dryRun = false) {
+  async sendMessage(toUid, payload, dryRun = false) {
     // This registration token comes from the client FCM SDKs and saved in Firestore
     const user = await db.getUser(toUid);
     const /* Array */ fcmTokens = user.fcmTokens;
@@ -40,9 +40,7 @@ module.exports = {
     return messaging
       .sendToDevice(
         tokens, // ['token_1', 'token_2', ...]
-        {
-          data
-        },
+        payload,
         {
           // Required for background/quit data-only messages on iOS
           contentAvailable: true,
@@ -63,6 +61,6 @@ module.exports = {
    * @param {String} uid
    */
   async invalidate(uid) {
-    return this.sendMessage(uid, {}, true);
+    return this.sendMessage(uid, { data: { test: true } }, true);
   }
 };
