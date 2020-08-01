@@ -44,7 +44,7 @@ export default {
    * @param {{name:String, email:String, password: String}} payload
    * @return {Promise}
    */
-  register(payload) {
+  async register(payload) {
     const { email, password, name } = payload;
 
     return (
@@ -79,7 +79,7 @@ export default {
    * @param {{email:String, password: String}} payload
    * @return {Promise}
    */
-  login(payload) {
+  async login(payload) {
     const { email, password } = payload;
 
     return auth.signInWithEmailAndPassword(email, password);
@@ -89,7 +89,7 @@ export default {
    * Logout
    * @return {Promise}
    */
-  logout() {
+  async logout() {
     return auth.signOut();
   },
 
@@ -98,7 +98,7 @@ export default {
    * @param {String} newPassword
    * @return {Promise}
    */
-  updatePassword(newPassword) {
+  async updatePassword(newPassword) {
     const user = auth.currentUser;
 
     if (user) {
@@ -114,7 +114,7 @@ export default {
    * @param {String?} photoURL
    * @return {Promise<}
    */
-  updateProfile({ name, photoURL }) {
+  async updateProfile({ name, photoURL }) {
     const user = auth.currentUser;
 
     if (user) {
@@ -134,5 +134,17 @@ export default {
     } else {
       return Promise.reject('Not logged in');
     }
+  },
+
+  /**
+   * Return current user's ID
+   * @return {String}
+   */
+  getUserId() {
+    const user = auth.currentUser;
+
+    if (!user) throw new Error('Not logged in user');
+
+    return user.uid;
   }
 };

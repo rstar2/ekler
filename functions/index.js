@@ -113,10 +113,13 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
     // add in the 'history' collection finally
     await db.historyAdd(db.history.CHECKOUT, data);
 
-    await messaging.sendMessage(data.to, {
+    const invalidTokens = await messaging.sendMessage(data.to, {
       title: 'Checkout',
       body: 'XXX wants his eklers!!!'
     });
+
+    // invalidate any of the FCM registration tokens
+    await db.userRemoveFcmTokens(data.to, invalidTokens);
   }
 
   return true;
@@ -125,9 +128,10 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
 /**
  * This is HTTPS callable function
  *
- *Add a user's device-registration-token for FCM messages (e.g. PushNotifications) in Firestore DB.
+ * Invalidate (any unknown one) user's device-registration-token
+ * for FCM messages (e.g. PushNotifications) in Firestore DB.
  */
-exports.fcmRegisterDevice = functions.https.onCall(async (data, context) => {
+exports.invalidateFcmToken = functions.https.onCall(async (data, context) => {
   // Checking that the user is authenticated.
   if (!context.auth) {
     // Throwing an HttpsError so that the client gets the error details.
@@ -139,8 +143,6 @@ exports.fcmRegisterDevice = functions.https.onCall(async (data, context) => {
   let errorInvalidArgument;
   if (!data.uid) {
     errorInvalidArgument = 'No "uid" present - cannot checkout Eklers';
-  } else if (!data.token) {
-    errorInvalidArgument = 'No "token" present - cannot checkout Eklers';
   }
   if (errorInvalidArgument) {
     console.log(errorInvalidArgument);
@@ -148,8 +150,11 @@ exports.fcmRegisterDevice = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('invalid-argument', errorInvalidArgument);
   }
 
-  // store the FCM registration token
-  await db.userAddFCMToken(data.uid, data.token);
+  // invalidate the current user's FCM tokens - e.g. return the "invalid" ones
+  const invalidTokens = await messaging.invalidateFcmTokens(data.uid);
+
+  // invalidate any of the FCM registration tokens
+  await db.userRemoveFcmTokens(data.uid, invalidTokens);
 
   return true;
 });

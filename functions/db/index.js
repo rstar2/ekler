@@ -202,11 +202,32 @@ module.exports = {
   },
 
   /**
-   * Add/remove a FCM registration-token to a user
+   * Add a FCM registration-token to a user
    * @param {String} uid
    * @param {String} token
+   * @deprecated Add/Update of the tokens is done from the client Firebase SDK
    */
   async userAddFCMToken(uid, token) {
-    const user = await this.userGet(uid);
+    const user = users.doc(uid).update({
+      fcmTokens: admin.firestore.FieldValue.arrayUnion({ token })
+    });
+
+    console.log(`Add new FCM token ${token} to user ${user.name}`);
+
+    return user;
+  },
+
+  /**
+   * Remove FCM registration-tokens assigned to a user
+   * @param {String} uid
+   * @param {String[]} tokens
+   */
+  async userRemoveFcmTokens(uid, tokens) {
+    // TODO:
+    const user = users.doc(uid).update({
+      fcmTokens: admin.firestore.FieldValue.arrayRemove([{  }])
+    });
+
+    return user;
   }
 };

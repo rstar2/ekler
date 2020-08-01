@@ -1,13 +1,16 @@
 import logger from '../lib/logger';
-import { db, functions } from '../lib/firebase';
+import firebase, { db, functions } from '../lib/firebase';
 
 // get the Firebase functions to call
 const eklersAddFn = functions.httpsCallable('addEklers');
 const eklersCheckoutFn = functions.httpsCallable('checkoutEklers');
+const invalidateFcmTokenFn = functions.httpsCallable('invalidateFcmToken');
 
 const /* firebase.firestore.CollectionReference */ users = db.collection(process.env.VUE_APP_FIREBASE_COLL_USERS);
 const /* firebase.firestore.CollectionReference */ history = db.collection(process.env.VUE_APP_FIREBASE_COLL_HISTORY);
 const /* firebase.firestore.CollectionReference */ eklers = db.collection(process.env.VUE_APP_FIREBASE_COLL_EKLERS);
+
+const isTestMode = 'true' === process.env.VUE_APP_TEST_MODE;
 
 // Use pagination cursors: https://firebase.google.com/docs/firestore/query-data/query-cursors
 const historyLoad = {
@@ -123,7 +126,11 @@ const initUsersRealtime = () => {
 const parseUsers = snapshot => {
   const usersDocs = [];
   snapshot.forEach(doc => {
-    usersDocs.push({ id: doc.id, ...doc.data() });
+    const user = doc.data();
+    // skip 'testers' in test mode
+    if (!isTestMode || user.title !== 'tester') {
+      usersDocs.push({ id: doc.id, ...user });
+    }
   });
   return usersDocs;
 };
@@ -146,7 +153,7 @@ export default {
    * Get the workspace (e.g. all users)
    * @return {Promise<[]>}
    */
-  usersLoad() {
+  async usersLoad() {
     return users.get().then(snapshot => {
       const usersDocs = parseUsers(snapshot);
       logger.info(`Users: Loaded ${usersDocs.length}`);
@@ -162,7 +169,7 @@ export default {
    * @param {Number} count Zero or less means no limits/pages
    * @return {Promise<{history: {[field: string]: any}[], hasMore: Boolean}>}
    */
-  historyLoad(count = -1) {
+  async historyLoad(count = -1) {
     // fail fast if no more
     if (!historyLoad.hasMore) return Promise.resolve({ history: [], hasMore: false });
 
@@ -221,7 +228,7 @@ export default {
    * Get the Eklers "graph"
    * @return {Promise<[]>}
    */
-  eklersLoad() {
+  async eklersLoad() {
     return eklers.get().then(snapshot => {
       const { eklersDocs, checkoutsDocs } = parseEklers(snapshot);
       logger.info(`Eklers: Loaded ${eklersDocs.length}`);
@@ -238,7 +245,7 @@ export default {
    * @param {String} to
    * @return {Promise<>}
    */
-  eklersAdd(from, to, count = 1) {
+  async eklersAdd(from, to, count = 1) {
     // the Firebase Firestore DB is protected from unauthorized add/update/delete
     // so use a Firebase Callable Function
     return eklersAddFn({ from, to, count }).then(result => result.data);
@@ -249,11 +256,33 @@ export default {
    * @param {String} from user requesting the checkout, e.g. the one to which the other user owes eklers
    * @param {String} to user being 'checkouted', e.g. the one owning the eklers
    */
-  eklersCheckout(from, to) {
+  async eklersCheckout(from, to) {
     // the Firebase Firestore DB is protected from unauthorized add/update/delete
     // so use a Firebase Callable Function
     console.log('Checkout func', from, '->', to);
 
     return eklersCheckoutFn({ from, to }).then(result => result.data);
+  },
+
+  /**
+   * Add/assign the FCM device token to a user
+   * @param {String} uid
+   * @param {String} token
+   */
+  async userAddFcmToken(uid, token) {
+    // add/merge into the array of tokens
+    return users.doc(uid).update({
+      fcmTokens: firebase.firestore.FieldValue.arrayUnion({ token })
+    });
+  },
+
+  /**
+   * Invalidate the FCM device token of a user - but it's unknown which one exactly so
+   * just notify the "server" to check
+   * @param {String} uid
+   */
+  async userInvalidateFcmToken(uid) {
+    // notify to invalidate (and recheck assigned tokens)
+    return invalidateFcmTokenFn(uid);
   }
 };

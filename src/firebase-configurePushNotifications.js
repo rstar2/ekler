@@ -1,4 +1,7 @@
-import { messaging } from './lib/firebase.js';
+import { messaging } from './lib/firebase';
+
+import auth from './services/auth.js';
+import db from './services/db.js';
 
 const vapidPublicKey = process.env.VUE_APP_FIREBASE_VAPID_PUBLIC_KEY;
 
@@ -25,13 +28,18 @@ export default swReg => {
   messaging
     .requestPermission()
     .then(() => messaging.getToken())
-    .then(token => console.log('FCM token OK:', token))
+    .then(token => {
+      console.log('FCM token OK:', token);
+
+      return db.userAddFcmToken(auth.getUserId(), token);
+    })
     .catch(error => {
       console.error('FCM token failed:', error);
       return messaging.deleteToken();
     });
 
   messaging.onTokenRefresh(() => {
+    // TODO: check is it called on delete
     console.log('FCM token refreshed');
   });
 
