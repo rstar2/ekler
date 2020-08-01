@@ -12,7 +12,7 @@ module.exports = {
    */
   async sendMessage(toUid, payload, dryRun = false) {
     // This registration token comes from the client FCM SDKs and saved in Firestore
-    const user = await db.getUser(toUid);
+    const user = await db.userGet(toUid);
     const /* Array */ fcmTokens = user.fcmTokens;
 
     console.log(`FCM tokens for user ${user}`, fcmTokens);

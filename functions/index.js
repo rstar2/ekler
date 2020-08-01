@@ -24,6 +24,10 @@ db.init(collusers, colleklers, collhistory);
 
 const messaging = require('./messaging');
 
+// From https://firebase.google.com/docs/functions/config-env
+// GCLOUD_PROJECT and FIREBASE_CONFIG are auto-populated environment variables
+const APP_URL = `https://${process.env.GCLOUD_PROJECT}.web.app/`;
+
 /**
  * This is HTTPS callable function
  *
@@ -55,15 +59,6 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
 
   console.log('Add Eklers :', data);
 
-  const projectId = admin.instanceId().app.options.projectId;
-  console.log('Project ID', projectId);
-
-  const FIREBASE_CONFIG = process.env.FIREBASE_CONFIG && JSON.parse(process.env.FIREBASE_CONFIG);
-  console.log('FIREBASE_CONFIG', FIREBASE_CONFIG);
-
-  console.log('Envs', process.env);
-
-
   let errorInvalidArgument;
   if (!data.from) {
     errorInvalidArgument = 'No "uid" present - cannot add Eklers';
@@ -90,8 +85,7 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
         title: 'You got new eklers',
         body: 'asdasdasd',
         icon: './images/notification.png',
-        // TODO: get real app's url (if possible from config otherwise from .env file)
-        clickAction: 'http://localhost:5000'
+        clickAction: APP_URL
       }
     });
   }
