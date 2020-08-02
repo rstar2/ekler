@@ -80,7 +80,8 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
     // add in the 'history' collection finally
     await db.historyAdd(db.history.ADD, data);
 
-    await messaging.sendMessage(data.to, {
+    const invalidTokens = await messaging.sendMessage(data.to, {
+      // TODO: Create proper Notification
       notification: {
         title: 'You got new eklers',
         body: 'asdasdasd',
@@ -88,6 +89,11 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
         clickAction: APP_URL
       }
     });
+
+    // invalidate any of the FCM registration tokens
+    if (invalidTokens) {
+      await db.userRemoveFcmTokens(data.to, invalidTokens);
+    }
   }
 
   return true;
@@ -167,7 +173,9 @@ exports.invalidateFcmToken = functions.https.onCall(async (data, context) => {
   const invalidTokens = await messaging.invalidateFcmTokens(data.uid);
 
   // invalidate any of the FCM registration tokens
-  await db.userRemoveFcmTokens(data.uid, invalidTokens);
+  if (invalidTokens) {
+    await db.userRemoveFcmTokens(data.uid, invalidTokens);
+  }
 
   return true;
 });

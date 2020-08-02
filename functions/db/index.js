@@ -220,12 +220,11 @@ module.exports = {
   /**
    * Remove FCM registration-tokens assigned to a user
    * @param {String} uid
-   * @param {String[]} tokens
+   * @param {Object[]} tokens
    */
   async userRemoveFcmTokens(uid, tokens) {
-    // TODO:
     const user = users.doc(uid).update({
-      fcmTokens: admin.firestore.FieldValue.arrayRemove([{  }])
+      fcmTokens: admin.firestore.FieldValue.arrayRemove(tokens)
     });
 
     return user;

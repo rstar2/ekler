@@ -50,9 +50,21 @@ module.exports = {
           dryRun
         }
       )
-      .then(response => {
-        // TODO: check which user's FCM tokens have expired (or jut not valid any more)
-        console.log('Failed to send', response);
+      .then(({ /* Number */ failureCount, /* Array */ results }) => {
+        // check which user's FCM tokens have expired (or jut not valid any more)
+        let invalidFcmTokens = null;
+        if (failureCount > 0) {
+          invalidFcmTokens = [];
+          // the order of the results is the same as of the tokens
+          // find all "failed" tokens and later remove them
+          results.forEach((aResult, index) => {
+            if (aResult.error) {
+              invalidFcmTokens.push(fcmTokens[index]);
+            }
+          });
+          console.warn(`Invalid ${(invalidFcmTokens, length)} tokens`);
+        }
+        return invalidFcmTokens;
       });
   },
 
