@@ -25,18 +25,27 @@ export default swReg => {
   messaging.usePublicVapidKey(vapidPublicKey);
 
   // TODO: Make it better and send registrations/tokens to Firebase
-  messaging
-    .requestPermission()
-    .then(() => messaging.getToken())
-    .then(token => {
-      console.log('FCM token OK:', token);
-
-      return db.userAddFcmToken(auth.getUserId(), token);
-    })
-    .catch(error => {
-      console.error('FCM token failed:', error);
+  auth.onAuthStateChanged(user => {
+    // on logout take no action
+    if (!user) {
+      // TODO: delete the registration also if possible
       return messaging.deleteToken();
-    });
+    }
+
+    // just check
+    messaging
+      .requestPermission()
+      .then(() => messaging.getToken())
+      .then(token => {
+        console.log('FCM token OK:', token);
+
+        return db.userAddFcmToken(auth.getUserId(), token);
+      })
+      .catch(error => {
+        console.error('FCM token failed:', error);
+        return messaging.deleteToken();
+      });
+  });
 
   messaging.onTokenRefresh(() => {
     // TODO: check is it called on delete

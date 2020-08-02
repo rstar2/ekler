@@ -13,7 +13,7 @@ export default {
     // 2. As a result to 'createUserWithEmailAndPassword', 'signInWithEmailAndPassword', 'signOut'
     //    so technically the commits after their results are not needed, but let them stay for now
     const _this = this; // firebase calls this callback inside a Promise so this inside it is the Promise itself
-    auth.onAuthStateChanged(user => {
+    this.onAuthStateChanged(user => {
       let promise = Promise.resolve(null);
 
       // allow only "verified" users
@@ -37,6 +37,14 @@ export default {
       // notify the callback for the auth
       promise.then(authChangeCallback);
     });
+  },
+
+  /**
+   * Listen to auth change events
+   * @param {Function} callback
+   */
+  onAuthStateChanged(callback) {
+    auth.onAuthStateChanged(callback);
   },
 
   /**

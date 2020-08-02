@@ -5,6 +5,8 @@ import auth from '../services/auth';
 import db from '../services/db';
 import HistoryRecord from '../model/history_record';
 
+const isTestMode = 'true' === process.env.VUE_APP_TEST_MODE;
+
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
@@ -128,12 +130,12 @@ const store = new Vuex.Store({
      * @param {HistoryRecord[]} history
      */
     historyAdded(state, history) {
-      // add all specified new places
+      // add new history in font
       state.history.unshift(...history);
     },
     /**
      * @param {*} state
-     * @param {{id: String, name: String}[]} users
+     * @param {{id: String, name: String, title: String}[]} users
      */
     usersSet(state, users) {
       // set the users
@@ -147,7 +149,7 @@ const store = new Vuex.Store({
     },
     /**
      * @param {*} state
-     * @param {{id: String, name: String}[]} users
+     * @param {{id: String, to: Object}[]} users
      */
     eklersSet(state, eklers) {
       // set the eklers
@@ -158,7 +160,7 @@ const store = new Vuex.Store({
      * @param {{id: String}[]} users
      */
     checkoutsSet(state, checkouts) {
-      // set the eklers
+      // set the checkouts
       state.checkouts = checkouts;
     }
   },
@@ -311,10 +313,23 @@ db.init({
     store.commit('historyAdded', [HistoryRecord.fromDB(historyRec)]);
   },
   eklersChangeCallback: (eklers, checkouts) => {
-    store.commit('eklersSet', eklers);
-    store.commit('checkoutsSet', checkouts);
+    let filteredEklers = eklers,
+      filteredCheckouts = checkouts;
+    // skip 'testers' in non-test mode
+    if (!isTestMode) {
+      // TODO: ensure the eklers relations come after the users are committed
+      // filteredEklers = users.filter(user => user.title !== 'tester');
+    }
+
+    store.commit('eklersSet', filteredEklers);
+    store.commit('checkoutsSet', filteredCheckouts);
   },
   usersChangeCallback: users => {
-    store.commit('usersSet', users);
+    let filteredUsers = users;
+    // skip 'testers' in non-test mode
+    if (!isTestMode) {
+      filteredUsers = users.filter(user => user.title !== 'tester');
+    }
+    store.commit('usersSet', filteredUsers);
   }
 });

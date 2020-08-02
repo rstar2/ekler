@@ -10,8 +10,6 @@ const /* firebase.firestore.CollectionReference */ users = db.collection(process
 const /* firebase.firestore.CollectionReference */ history = db.collection(process.env.VUE_APP_FIREBASE_COLL_HISTORY);
 const /* firebase.firestore.CollectionReference */ eklers = db.collection(process.env.VUE_APP_FIREBASE_COLL_EKLERS);
 
-const isTestMode = 'true' === process.env.VUE_APP_TEST_MODE;
-
 // Use pagination cursors: https://firebase.google.com/docs/firestore/query-data/query-cursors
 const historyLoad = {
   pageCursor: null,
@@ -89,6 +87,7 @@ const parseEklers = snapshot => {
   const checkoutsDocs = {};
   snapshot.forEach(doc => {
     const data = doc.data();
+
     eklersDocs.push({ id: doc.id, to: { ...data } });
 
     Object.keys(data).forEach(userId => {
@@ -126,13 +125,7 @@ const initUsersRealtime = () => {
 const parseUsers = snapshot => {
   const usersDocs = [];
   snapshot.forEach(doc => {
-    const user = doc.data();
-    // skip 'testers' in non-test mode
-    if (!isTestMode && user.title !== 'tester') {
-      return;
-    }
-
-    usersDocs.push({ id: doc.id, ...user });
+    usersDocs.push({ id: doc.id, ...doc.data() });
   });
   return usersDocs;
 };
