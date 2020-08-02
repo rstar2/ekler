@@ -62,7 +62,7 @@ module.exports = {
               invalidFcmTokens.push(fcmTokens[index]);
             }
           });
-          console.warn(`Invalid ${(invalidFcmTokens, length)} tokens`);
+          console.warn(`Invalid ${invalidFcmTokens.length} tokens`);
         }
         return invalidFcmTokens;
       });
