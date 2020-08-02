@@ -224,7 +224,7 @@ module.exports = {
    */
   async userRemoveFcmTokens(uid, tokens) {
     const user = users.doc(uid).update({
-      fcmTokens: admin.firestore.FieldValue.arrayRemove(tokens)
+      fcmTokens: admin.firestore.FieldValue.arrayRemove(...tokens)
     });
 
     return user;
