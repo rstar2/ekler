@@ -85,8 +85,8 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
       // Create proper Notification
       notification: {
         title: 'Eklers',
-        body: `${user.name} has to give you ${data.count} new eklers`,
-        icon: './images/notification.png',
+        body: `${user.name} has to give you ${data.count} new ekler(s)`,
+        icon: 'img/notify-add.png',
         clickAction: APP_URL
       }
     });
