@@ -212,7 +212,7 @@ module.exports = {
       fcmTokens: admin.firestore.FieldValue.arrayUnion({ token })
     });
 
-    console.log(`Add new FCM token ${token} to user ${uid}`);
+    console.log(`Add new FCM token "${token}" to user ${uid}`);
   },
 
   /**
@@ -225,6 +225,6 @@ module.exports = {
       fcmTokens: admin.firestore.FieldValue.arrayRemove(...fcmTokens)
     });
 
-    console.log(`Removed invalid FCM tokens ${fcmTokens.map(fcmToken => fcmToken.token).join()} from user ${uid}`);
+    console.log(`Removed invalid FCM tokens "${fcmTokens.map(fcmToken => fcmToken.token).join()}" from user ${uid}`);
   }
 };

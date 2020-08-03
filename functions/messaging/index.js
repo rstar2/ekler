@@ -17,7 +17,7 @@ module.exports = {
 
     if (!fcmTokens) return console.log('No Push messaging registration');
 
-    console.log(`Send to FCM tokens for user ${toUid}`, fcmTokens);
+    console.log(`Send to FCM tokens for user ${toUid}:`, fcmTokens);
 
     // each fcmToken can be of the sort { token: 'XXX', deviceId: 'YYY;, .... } (e.g. have more complex data stored)
     const tokens = fcmTokens.map(fcmToken => fcmToken.token);

@@ -228,7 +228,8 @@ const store = new Vuex.Store({
     async usersLoad({ commit }) {
       let loadError;
       try {
-        const users = await db.usersLoad();
+        let users = await db.usersLoad();
+        users = filterUsers(users);
         commit('usersSet', users);
       } catch (error) {
         loadError = error;
@@ -243,10 +244,12 @@ const store = new Vuex.Store({
     /**
      * Load eklers
      * @param {Vuex.Commit} commit
+     * @param {Vuex.State} state
      * @return {Promise}
      */
-    async eklersLoad({ commit }) {
-      const { eklers, checkouts } = await db.eklersLoad();
+    async eklersLoad({ commit, state }) {
+      const eklersAndCheckouts = await db.eklersLoad();
+      const { eklers, checkouts } = filterEklers(eklersAndCheckouts, state.users); // eklersAndCheckouts
       commit('eklersSet', eklers);
       commit('checkoutsSet', checkouts);
     },
@@ -264,12 +267,11 @@ const store = new Vuex.Store({
 
     /**
      * Add/Owe eklers
-     * @param {Vuex.ActionContext} context
+     * @param {Vuex.State} state
      * @param {String} userId
      * @return {Promise}
      */
-    async eklersCheckout(context, userId) {
-      const { state } = context;
+    async eklersCheckout({ state }, userId) {
       await db.eklersCheckout(state.authUser.id, userId);
     }
   }
@@ -313,23 +315,43 @@ db.init({
     store.commit('historyAdded', [HistoryRecord.fromDB(historyRec)]);
   },
   eklersChangeCallback: (eklers, checkouts) => {
-    let filteredEklers = eklers,
-      filteredCheckouts = checkouts;
-    // skip 'testers' in non-test mode
-    if (!isTestMode) {
-      // TODO: ensure the eklers relations come after the users are committed
-      // filteredEklers = users.filter(user => user.title !== 'tester');
-    }
-
+    const { eklers: filteredEklers, checkouts: filteredCheckouts } = filterEklers(
+      { eklers, checkouts },
+      store.state.users
+    );
     store.commit('eklersSet', filteredEklers);
     store.commit('checkoutsSet', filteredCheckouts);
   },
   usersChangeCallback: users => {
-    let filteredUsers = users;
-    // skip 'testers' in non-test mode
-    if (!isTestMode) {
-      filteredUsers = users.filter(user => user.title !== 'tester');
-    }
-    store.commit('usersSet', filteredUsers);
+    store.commit('usersSet', filterUsers(users));
   }
 });
+
+const filterUsers = users => {
+  let filteredUsers = users;
+  // skip 'testers' in non-test mode
+  if (!isTestMode) {
+    filteredUsers = users.filter(user => user.title !== 'tester');
+  }
+  return filteredUsers;
+};
+
+// TODO: ensure the eklers relations come after the users are committed
+const filterEklers = ({ eklers, checkouts }, /* Array */ users) => {
+  let filteredEklers = eklers,
+    filteredCheckouts = checkouts;
+  // skip 'testers' in non-test mode
+  if (!isTestMode) {
+    // NOTE: Assume that a non-tester is not giving/owing/check-outing eklers to a tester (and vice versa)
+    const nonTesters = new Set(users.map(user => user.id));
+    filteredCheckouts = {};
+    // add all non-testers
+    Object.keys(checkouts).forEach(uid => {
+      if (nonTesters.has(uid)) {
+        filteredCheckouts[uid] = checkouts[uid];
+      }
+    });
+    filteredEklers = filteredEklers.filter(ekler => nonTesters.has(ekler.id));
+  }
+  return { eklers: filteredEklers, checkouts: filteredCheckouts };
+};

@@ -24,74 +24,54 @@ export default swReg => {
   // Add the VAPID public key generated from the console
   messaging.usePublicVapidKey(vapidPublicKey);
 
-  // TODO: Make it better and send registrations/tokens to Firebase
-  auth.onAuthStateChanged(user => {
-    // on logout take no action
-    if (!user) {
-      // TODO: delete the registration also if possible
-      return messaging.deleteToken();
-    }
-
-    // just check
-    messaging
-      .requestPermission()
-      .then(() => messaging.getToken())
-      .then(token => {
-        console.log('FCM token OK:', token);
-
-        return db.userAddFcmToken(auth.getUserId(), token);
-      })
-      .catch(error => {
-        console.error('FCM token failed:', error);
+  auth.onAuthStateChanged(
+    /* firebase.firestore.User */ user => {
+      // on logout take no action
+      if (!user) {
+        // delete the token
+        // NOTE: we cannot invalidate as the Fireabase Functions may be called only when authorized
         return messaging.deleteToken();
-      });
-  });
+      }
+
+      const authUserId = auth.getUserId();
+
+      // 1. request Notifications showing permission
+      // 2. get token
+      // 3. store it to DB
+      // 4. if failed (like when requesting permission) delete token and invalidate
+      messaging
+        .requestPermission()
+        .then(() => messaging.getToken())
+        .then(token => {
+          console.log('FCM token OK:', token);
+
+          return db.userAddFcmToken(authUserId, token);
+        })
+        .catch(error => {
+          console.error('FCM token failed:', error);
+          return messaging.deleteToken().then(() => db.userInvalidateFcmToken(authUserId));
+        });
+    }
+  );
 
   messaging.onTokenRefresh(() => {
-    // TODO: check is it called on delete
+    // NOTE: this is not called on deleteToken()
+
     console.log('FCM token refreshed');
+
+    const authUserId = auth.getUserId();
+
+    // 1. get latest token
+    // 2. store it to DB
+    // 3. invalidate previous
+    messaging
+      .getToken()
+      .then(token => {
+        console.log('FCM token OK:', token);
+        return db.userAddFcmToken(authUserId, token);
+      })
+      .then(() => db.userInvalidateFcmToken(authUserId));
   });
-
-  //   // Get Instance ID token. Initially this makes a network call, once retrieved
-  //   // subsequent calls to getToken will return from cache.
-  //   messaging
-  //     .getToken()
-  //     .then(currentToken => {
-  //       if (currentToken) {
-  //         sendTokenToServer(currentToken);
-  //         updateUIForPushEnabled(currentToken);
-  //       } else {
-  //         // Show permission request.
-  //         console.log('No Instance ID token available. Request permission to generate one.');
-  //         // Show permission UI.
-  //         updateUIForPushPermissionRequired();
-  //         setTokenSentToServer(false);
-  //       }
-  //     })
-  //     .catch(err => {
-  //       console.log('An error occurred while retrieving token. ', err);
-  //       showToken('Error retrieving Instance ID token. ', err);
-  //       setTokenSentToServer(false);
-  //     });
-
-  //   // Callback fired if Instance ID token is updated.
-  //   messaging.onTokenRefresh(() => {
-  //     messaging
-  //       .getToken()
-  //       .then(refreshedToken => {
-  //         console.log('Token refreshed.');
-  //         // Indicate that the new Instance ID token has not yet been sent to the
-  //         // app server.
-  //         setTokenSentToServer(false);
-  //         // Send Instance ID token to app server.
-  //         sendTokenToServer(refreshedToken);
-  //         // ...
-  //       })
-  //       .catch(err => {
-  //         console.log('Unable to retrieve refreshed token ', err);
-  //         showToken('Unable to retrieve refreshed token ', err);
-  //       });
-  //   });
 
   // Handle incoming messages. Called when:
   // - a message is received while the app has focus
