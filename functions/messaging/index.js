@@ -6,18 +6,17 @@ const db = require('../db');
 module.exports = {
   /**
    * Send a message to all user's assigned FCM device tokens
-   * @param {String} toUid
+   * @param {{id: String, fcmTokens: Array}} user
    * @param {admin.messaging.MessagingPayload} payload
    * @param {Boolean} dryRun
    */
-  async sendMessage(toUid, payload, dryRun = false) {
+  async sendMessage(user, payload, dryRun = false) {
     // This registration token comes from the client FCM SDKs and saved in Firestore
-    const user = await db.userGet(toUid);
     const /* Array */ fcmTokens = user.fcmTokens;
 
     if (!fcmTokens) return console.log('No Push messaging registration');
 
-    console.log(`Send to FCM tokens for user ${toUid}:`, fcmTokens);
+    console.log(`Send to FCM tokens for user ${user.id}:`, fcmTokens);
 
     // each fcmToken can be of the sort { token: 'XXX', deviceId: 'YYY;, .... } (e.g. have more complex data stored)
     const tokens = fcmTokens.map(fcmToken => fcmToken.token);
@@ -70,9 +69,9 @@ module.exports = {
 
   /**
    * Invalidate (check which are invalid) user's FCM device tokens
-   * @param {String} uid
+   * @param {Object} user
    */
-  async invalidate(uid) {
-    return this.sendMessage(uid, { data: { test: true } }, true);
+  async invalidate(user) {
+    return this.sendMessage(user, { data: { test: true } }, true);
   }
 };

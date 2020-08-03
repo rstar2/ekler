@@ -80,11 +80,12 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
     // add in the 'history' collection finally
     await db.historyAdd(db.history.ADD, data);
 
-    const invalidTokens = await messaging.sendMessage(data.to, {
-      // TODO: Create proper Notification
+    const user = await db.userGet(data.to);
+    const invalidTokens = await messaging.sendMessage(user, {
+      // Create proper Notification
       notification: {
-        title: 'You got new eklers',
-        body: 'asdasdasd',
+        title: 'Eklers',
+        body: `${user.name} has to give you ${data.count} new eklers`,
         icon: './images/notification.png',
         clickAction: APP_URL
       }
@@ -170,7 +171,8 @@ exports.invalidateFcmToken = functions.https.onCall(async (data, context) => {
   }
 
   // invalidate the current user's FCM tokens - e.g. return the "invalid" ones
-  const invalidTokens = await messaging.invalidateFcmTokens(data.uid);
+  const user = await db.userGet(data.uid);
+  const invalidTokens = await messaging.invalidate(user);
 
   // invalidate any of the FCM registration tokens
   if (invalidTokens) {

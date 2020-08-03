@@ -1,3 +1,5 @@
+import Vue from 'vue';
+
 import { messaging } from './lib/firebase';
 
 import auth from './services/auth.js';
@@ -79,5 +81,13 @@ export default swReg => {
   //   `messaging.setBackgroundMessageHandler` handler.
   messaging.onMessage(message => {
     console.log('Received a "foreground" message', message);
+    // show internal UI-notification
+    const { notification /*, data */ } = message;
+    if (notification) {
+      Vue.notify({
+        text: notification.body
+        // timeout: 4000
+      });
+    }
   });
 };
