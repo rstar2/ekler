@@ -74,7 +74,7 @@ export default {
           db
             .collection(process.env.VUE_APP_FIREBASE_COLL_USERS)
             .doc(user.uid)
-            .set({ name: name })
+            .set({ email: user.email, name: name })
         )
 
         // 5. always "logout" internally from Firebase, until user verifies his email

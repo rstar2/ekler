@@ -21,6 +21,7 @@
         :net-links="links"
         :options="options"
         :link-cb="linkCallback"
+        :node-cb="nodeCallback"
         @node-click="nodeClick"
       />
     </v-col>
@@ -30,6 +31,29 @@
 <script>
 import D3Network from 'vue-d3-network';
 import 'vue-d3-network/dist/vue-d3-network.css';
+
+import * as avatars from '@/services/avatars';
+
+const LINK_WIDTH = 3;
+const NODE_SIZE = 48;
+
+/**
+ *
+ * @param {String} imageUrl
+ * @param {Number} size
+ */
+export function createSVGFromImgUrl(imageUrl, size = NODE_SIZE) {
+  const middle = size / 2;
+  return `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <!-- Clip the image as a circle -->
+    <defs>
+      <clipPath id="myCircle">
+              <circle cx="${middle}" cy="${middle}" r="${middle}" fill="#FFFFFF" />
+      </clipPath>
+    </defs>
+    <image href="${imageUrl}" height="${size}" width="${size}" clip-path="url(#myCircle)"/>
+  </svg>`;
+}
 
 export default {
   name: 'Eklers',
@@ -59,7 +83,7 @@ export default {
     nodes() {
       // return [ { id: 1, name: 'my node 1' }, ....]
       const nodes = this.users.map(user => {
-        const node = { id: user.id, name: user.name };
+        const node = { id: user.id, name: user.name, email: user.email };
 
         // mark the authorized user
         if (this.authUserId && node.id === this.authUserId) {
@@ -102,17 +126,21 @@ export default {
   created() {
     // create it here and not in data as it's not needed to be "reactive"
     this.options = {
-      force: 3000,
-      nodeSize: 20,
+      force: 5000,
+      nodeSize: NODE_SIZE,
       nodeLabels: true,
       linkLabels: true,
-      linkWidth: 2
+      linkWidth: LINK_WIDTH
     };
   },
   methods: {
     linkCallback(link) {
       link._svgAttrs = { 'marker-end': 'url(#m-end)' };
       return link;
+    },
+    nodeCallback(node) {
+      node.svgSym = createSVGFromImgUrl(avatars.createAvatar(node.email));
+      return node;
     },
     nodeClick(event, node) {
       const user = this.users.find(user => user.id === node.id);

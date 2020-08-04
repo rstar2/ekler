@@ -22,7 +22,7 @@ module.exports = async (auth, db, { email, password, name, title }, collUsers) =
   });
 
   // add in 'users' DB
-  const user = { id: userRecord.uid };
+  const user = { id: userRecord.uid, email: userRecord.email };
   // cannot add undefined fields in the document - so add them explicitly
   if (name) user.name = name;
   if (title) user.title = title;

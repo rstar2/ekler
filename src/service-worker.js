@@ -1,12 +1,14 @@
 /* eslint-disable no-console */
-/* global importScripts:true, firebase: true */
+/* global importScripts:true, workbox:true, firebase: true */
 
 /**
  * @type {ServiceWorker} self
  */
 
-// I. Caching
-// TODO:
+// I. Caching (Using Workbox and Vue-PWA)
+// The 'self.__precacheManifest' is generated in the auto-imported/generated "precache-manifest.XXXX.js" file
+self.__precacheManifest = [].concat(self.__precacheManifest || []);
+workbox.precaching.precacheAndRoute(self.__precacheManifest, {});
 
 // II. New content notification
 // https://levelup.gitconnected.com/vue-pwa-example-298a8ea953c9
