@@ -1,6 +1,6 @@
 <template>
   <v-container class="profile">
-    <v-row class="flex-column">
+    <v-row v-if="authUser" class="flex-column">
       <v-col><span class="headline">Email: </span>{{ authUser.email }}</v-col>
 
       <v-col>
@@ -19,8 +19,14 @@
 
       <v-col>
         <span class="headline">Profile picture: </span>
-        {{ authUser.photoURL || '"Not implemented yet"' }}
-        <v-btn text>
+        {{ authUser.photoURL || 'Not set' }}
+        <v-btn
+          text
+          @click="
+            dialogInput.for = 'JIRA Avatar OwnerID';
+            dialogInput.show = true;
+          "
+        >
           <v-icon>mdi-pencil</v-icon>
         </v-btn>
       </v-col>
@@ -88,14 +94,11 @@ export default {
         this.changeProfile({ name: value });
       } else if (this.dialogInput.for === 'Password') {
         this.changePassword(value);
+      } else if (this.dialogInput.for === 'JIRA Avatar OwnerID') {
+        this.changeProfile({ photoURL: value });
       } else {
         throw new Error('Invald dialog input state');
       }
-    },
-    changeAvatar() {
-      // TODO: Implement avatar select
-      const photoURL = undefined;
-      this.changeProfile({ photoURL });
     },
     async changeProfile({ name, photoURL }) {
       try {

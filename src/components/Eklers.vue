@@ -1,5 +1,5 @@
 <template>
-  <v-row class="text-center">
+  <v-row class="text-center flex-column eklers">
     <v-col cols="12">
       <svg class="defs-markers">
         <defs>
@@ -21,7 +21,6 @@
         :net-links="links"
         :options="options"
         :link-cb="linkCallback"
-        :node-cb="nodeCallback"
         @node-click="nodeClick"
       />
     </v-col>
@@ -83,7 +82,7 @@ export default {
     nodes() {
       // return [ { id: 1, name: 'my node 1' }, ....]
       const nodes = this.users.map(user => {
-        const node = { id: user.id, name: user.name, email: user.email };
+        const node = { id: user.id, name: user.name };
 
         // mark the authorized user
         if (this.authUserId && node.id === this.authUserId) {
@@ -94,6 +93,9 @@ export default {
         if (this.checkouts[node.id]) {
           node._color = 'red';
         }
+
+        // make the node be the avatar as a circle
+        node.svgSym = createSVGFromImgUrl(avatars.createAvatar(user));
 
         return node;
       });
@@ -138,10 +140,6 @@ export default {
       link._svgAttrs = { 'marker-end': 'url(#m-end)' };
       return link;
     },
-    nodeCallback(node) {
-      node.svgSym = createSVGFromImgUrl(avatars.createAvatar(node.email));
-      return node;
-    },
     nodeClick(event, node) {
       const user = this.users.find(user => user.id === node.id);
       this.$emit('userClick', user);
@@ -151,6 +149,10 @@ export default {
 </script>
 
 <style scoped>
+.eklers {
+  width: 100%;
+}
+
 .defs-markers {
   width: 0;
   height: 0;

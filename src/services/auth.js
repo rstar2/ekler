@@ -1,4 +1,5 @@
 import logger from '../lib/logger';
+import { prune } from '../lib/util';
 import { db, auth } from '../lib/firebase';
 
 export default {
@@ -128,15 +129,17 @@ export default {
     if (user) {
       return (
         user
-          // 1. update in the auth serv ice
+          // 1. update in the auth service
           .updateProfile({ displayName: name, photoURL })
           // 2. update in the 'users' DB
-          .then(() =>
-            db
-              .collection(process.env.VUE_APP_FIREBASE_COLL_USERS)
-              .doc(user.uid)
-              .set({ name })
-          )
+          .then(() => {
+            // update in the DB if necessary
+            if (name || photoURL) {
+              db.collection(process.env.VUE_APP_FIREBASE_COLL_USERS)
+                .doc(user.uid)
+                .set(prune({ name, jiraOwnerId: photoURL }), { merge: true });
+            }
+          })
           .then(() => user)
       );
     } else {

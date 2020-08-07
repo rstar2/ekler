@@ -139,4 +139,9 @@ export default {
   bottom: 0 !important;
   margin: 0 0 16px 16px;
 }
+
+.home {
+  height: 100%;
+  display: flex;
+}
 </style>

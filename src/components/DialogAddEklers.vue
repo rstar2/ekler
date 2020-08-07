@@ -19,7 +19,16 @@
                 label="To"
                 @keydown.enter="disabled ? void 0 : doAction()"
                 data-testid="in-to"
-              />
+              >
+                <template v-slot:item="data">
+                  <v-list-item-avatar>
+                    <img :src="getAvatar(data.item)" />
+                  </v-list-item-avatar>
+                  <v-list-item-content>
+                    <v-list-item-title v-html="data.item.name"></v-list-item-title>
+                  </v-list-item-content>
+                </template>
+              </v-autocomplete>
             </v-col>
             <v-col>
               <v-text-field
@@ -46,6 +55,8 @@
 </template>
 
 <script>
+import * as avatars from '@/services/avatars';
+
 export default {
   props: {
     users: {
@@ -70,6 +81,14 @@ export default {
     }
   },
   methods: {
+    /**
+     * @param {Object} user
+     * @return {String}
+     */
+    getAvatar(user) {
+      return avatars.createAvatar(user);
+    },
+
     /**
      * Used by the vuetify autocomplete component.
      * @param {{id: String, name:String, ...}} user

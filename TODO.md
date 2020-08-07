@@ -19,8 +19,8 @@
 - Add "Loading" state where needed on async actions
 - Add real CSS theme - active route CSS-class also to be included
 - Add history-load pagination and virtual scroll
-- Add avatars
-   - Allow setting/merging Jira account-email
+- ~~Add avatars~~
+   - ~~Allow setting/merging of a Jira account-email~~
    - ~~Show avatars with the Jira endpoint (it will work if user is logged in Jira at the moment)~~
 
 ## CLI
@@ -32,3 +32,8 @@
 ## CI/CD
 
 - ~~Add GitHub Actions for building and deploying~~
+
+## Bugs
+
+- GUI - The graph/net is not positioned properly and is not visible all of it,
+        later resizing the window also makes things worse

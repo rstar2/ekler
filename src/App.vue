@@ -5,14 +5,14 @@
     </v-app-bar>
 
     <v-content>
-      <v-container fluid>
+      <!-- <v-container fluid> -->
         <v-fade-transition mode="out-in">
           <!-- Use keep-alive as the main views are not needed to be recreated each time -->
           <keep-alive>
             <router-view />
           </keep-alive>
         </v-fade-transition>
-      </v-container>
+      <!-- </v-container> -->
 
       <!--  These components are necessary for the notifications/confirmations plugin to work -->
       <Notifications />
