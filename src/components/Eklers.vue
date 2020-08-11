@@ -78,6 +78,18 @@ export default {
       default: null
     }
   },
+  data() {
+    return {
+      options: {
+        force: 5000,
+        nodeSize: NODE_SIZE,
+        nodeLabels: true,
+        linkLabels: true,
+        linkWidth: LINK_WIDTH,
+        size: { h: 600 }
+      }
+    };
+  },
   computed: {
     nodes() {
       // return [ { id: 1, name: 'my node 1' }, ....]
@@ -125,16 +137,8 @@ export default {
       return links;
     }
   },
-  created() {
-    // create it here and not in data as it's not needed to be "reactive"
-    this.options = {
-      force: 5000,
-      nodeSize: NODE_SIZE,
-      nodeLabels: true,
-      linkLabels: true,
-      linkWidth: LINK_WIDTH
-    };
-  },
+  created() {},
+  destroyed() {},
   methods: {
     linkCallback(link) {
       link._svgAttrs = { 'marker-end': 'url(#m-end)' };

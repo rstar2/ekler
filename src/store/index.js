@@ -208,16 +208,14 @@ const store = new Vuex.Store({
     /**
      * Load history
      * @param {Vuex.Commit} commit
+     * @param {Vuex.State} state
      * @param {Number} count
      * @return {Promise}
      */
-    async historyLoad({ commit }, count) {
+    async historyLoad({ commit, state }, count) {
       const { history } = await db.historyLoad(count);
 
-      commit(
-        'historyAdded',
-        history.map(record => HistoryRecord.fromDB(record))
-      );
+      commit('historyAdded', filterHistory(history, state.users));
     },
 
     /**
@@ -312,7 +310,7 @@ auth.init(user => {
 // init the DB - like Users/History/Eklers.... - and listen for real-time updates
 db.init({
   historyAddCallback: historyRec => {
-    store.commit('historyAdded', [HistoryRecord.fromDB(historyRec)]);
+    store.commit('historyAdded', filterHistory([historyRec], store.state.users));
   },
   eklersChangeCallback: (eklers, checkouts) => {
     const { eklers: filteredEklers, checkouts: filteredCheckouts } = filterEklers(
@@ -337,6 +335,12 @@ const filterUsers = users => {
 };
 
 // TODO: ensure the eklers relations come after the users are committed
+/**
+ *
+ * @param {Array} eklers
+ * @param {Array} checkouts
+ * @param {Array} users
+ */
 const filterEklers = ({ eklers, checkouts }, /* Array */ users) => {
   let filteredEklers = eklers,
     filteredCheckouts = checkouts;
@@ -354,4 +358,20 @@ const filterEklers = ({ eklers, checkouts }, /* Array */ users) => {
     filteredEklers = filteredEklers.filter(ekler => nonTesters.has(ekler.id));
   }
   return { eklers: filteredEklers, checkouts: filteredCheckouts };
+};
+
+/**
+ *
+ * @param {Array} history
+ * @param {Array} users
+ */
+const filterHistory = (history, users) => {
+  console.log('users', users);
+
+  let filteredHistory = history.map(record => HistoryRecord.fromDB(record));
+  if (!isTestMode) {
+    const nonTesters = new Set(users.map(user => user.id));
+    filteredHistory = filteredHistory.filter(record => nonTesters.has(record.from) && nonTesters.has(record.to));
+  }
+  return filteredHistory;
 };
