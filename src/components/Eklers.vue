@@ -137,8 +137,16 @@ export default {
       return links;
     }
   },
-  created() {},
-  destroyed() {},
+  //   created() {
+  //     window.addEventListener('resize', this.onResize);
+  //   },
+  //   destroyed() {
+  //     window.removeEventListener('resize', this.onResize);
+  //   },
+  mounted() {
+    console.log('Create Height', this.$el.clientHeight);
+    this.options.size.h = this.$el.clientHeight;
+  },
   methods: {
     linkCallback(link) {
       link._svgAttrs = { 'marker-end': 'url(#m-end)' };
@@ -148,6 +156,10 @@ export default {
       const user = this.users.find(user => user.id === node.id);
       this.$emit('userClick', user);
     }
+    // onResize() {
+    //   console.log('Height', this.$el.clientHeight);
+    //   //   this.options.size.h = this.$el.clientHeight;
+    // }
   }
 };
 </script>

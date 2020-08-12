@@ -17,13 +17,16 @@
 
     <DialogAddEklers :users="toUsers" :activator="$refs.dlgActivator" @action="onAddEklers" />
 
-    <!-- notification for how many eklers you owe someone else -->
-    <DialogNotification v-model="ownerToUserMsg" title="You owe!!!" />
+    <!-- notification:
+     1. for how many eklers you owe someone else
+     2. if yo already requested/checkouted the other user that owes you eklers
+     -->
+    <DialogNotification v-model="notification" :title="notificationTitle" />
 
     <!-- notification for how many eklers someone else owe you -->
     <DialogConfirmation
-      :text="userToOwnerMsg"
-      title="Chekout"
+      title="Request"
+      :text="checkoutMsg"
       @close="checkout.userId = null"
       @confirm="doCheckoutConfirm()"
     />
@@ -50,7 +53,8 @@ export default {
   },
   data() {
     return {
-      ownerToUserMsg: '',
+      notification: '',
+      notificationTitle: '',
       checkout: {
         userId: null,
         eklers: 0
@@ -66,7 +70,8 @@ export default {
       if (this.authId) toUsers = toUsers.filter(user => user.id !== this.authId);
       return toUsers;
     },
-    userToOwnerMsg() {
+    checkoutMsg() {
+      // this will close the dialog also
       if (!this.checkout.userId) return '';
 
       const count = this.checkout.eklers;
@@ -99,11 +104,12 @@ export default {
 
       const ownerToUser = this.getEklers(this.authId, userId);
       if (ownerToUser) {
-        // you own eklers to this user
-        console.log('You own', ownerToUser.eklers, 'eklers to', userId);
+        // you owe eklers to this user
+        console.log('You owe', ownerToUser.eklers, 'eklers to', userId);
         // show a notification dialog
         const count = ownerToUser.eklers;
-        this.ownerToUserMsg = `You own ${count} ${pluralize(count, 'ekler')} to ${this.getUserName(userId)}`;
+        this.notification = `You owe ${count} ${pluralize(count, 'ekler')} to ${this.getUserName(userId)}`;
+        this.notificationTitle = 'You owe';
         return;
       }
 
@@ -111,17 +117,22 @@ export default {
       if (userToOwner) {
         console.log(userId, 'owes you', userToOwner.eklers, 'eklers');
 
-        // if (this.isBlocked(userId)) {
-        //   // he/she is already blocked
-        //   this.$notify({
-        //     text: `User ${this.getUserName(userId)} is blocked - needs to give requested eklers`,
-        //     type: 'error'
-        //   });
-        // } else {
-        // show confirmation dialog
-        this.checkout.userId = userId;
-        this.checkout.eklers = userToOwner.eklers;
-        // }
+        if (userToOwner.checkout) {
+          // so user is already "checkout"-ed - just show such message
+          const count = userToOwner.eklers;
+          this.notification = `${this.getUserName(userId)} owes you ${count} ${pluralize(count, 'ekler')}`;
+          this.notificationTitle = 'Already requested';
+        } /* else if (this.isBlocked(userId)) {
+          // he/she is already blocked
+          this.$notify({
+            text: `User ${this.getUserName(userId)} is blocked - needs to give requested eklers`,
+            type: 'error'
+          });
+        }  */ else {
+          // show confirmation dialog
+          this.checkout.userId = userId;
+          this.checkout.eklers = userToOwner.eklers;
+        }
       }
     },
 

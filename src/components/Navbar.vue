@@ -1,6 +1,6 @@
 <template>
   <!-- Make it a nav tag -->
-  <v-row tag="nav">
+  <v-row tag="nav" class="flex-nowrap">
     <div class="d-flex align-center">
       <v-img
         alt="Vuetify Logo"
