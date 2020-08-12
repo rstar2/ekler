@@ -6,5 +6,5 @@
 export function createAvatar(user, size = 'm') {
   let jiraOwnerId = user.jiraOwnerId || user.email.substring(0, user.email.indexOf('@'));
   if (!jiraOwnerId) return '';
-  return `https://jira2.cnexus.com/secure/useravatar?ownerId=${jiraOwnerId}&size${size}`;
+  return `https://jira2.cnexus.com/secure/useravatar?ownerId=${jiraOwnerId}&size=${size}`;
 }
