@@ -145,7 +145,8 @@ export default {
   //   },
   mounted() {
     console.log('Create Height', this.$el.clientHeight);
-    this.options.size.h = this.$el.clientHeight;
+    // TODO: FIX this resizing
+    this.options.size.h = this.$el.clientHeight - 32;
   },
   methods: {
     linkCallback(link) {

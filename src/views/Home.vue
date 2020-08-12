@@ -10,7 +10,7 @@
     />
 
     <v-fab-transition>
-      <v-btn v-show="authId" ref="dlgActivator" absolute dark fab bottom right color="primary" class="v-btn--addEklers">
+      <v-btn v-show="authId" ref="dlgActivator" fixed dark fab bottom right color="primary" class="v-btn--addEklers">
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-fab-transition>
@@ -145,7 +145,6 @@ export default {
 
 <style scoped>
 .v-btn--addEklers {
-  position: absolute;
   /* !important is to overwrite the vuetify CSS that have higher specificity */
   bottom: 0 !important;
   margin: 0 0 16px 16px;
