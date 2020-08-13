@@ -16,9 +16,9 @@
 - ~~Add caching in service-worker~~
     > Auto "fixed"from using vue-pwa and Workbox
 - ~~Add "checkout" eklers~~
-- Add "Loading" state where needed on async actions
+- ~~Add "Loading" state where needed on async actions~~
 - Add real CSS theme - active route CSS-class also to be included
-- Add history-load pagination and virtual scroll
+- Add history-load pagination and virtual scroll (when history becomes too big)
 - ~~Add avatars~~
    - ~~Allow setting/merging of a Jira account-email~~
    - ~~Show avatars with the Jira endpoint (it will work if user is logged in Jira at the moment)~~

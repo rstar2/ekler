@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
+import handler from './plugins/handler';
+
 import auth from '../services/auth';
 import db from '../services/db';
 import HistoryRecord from '../model/history_record';
@@ -10,6 +12,8 @@ const isTestMode = 'true' === process.env.VUE_APP_TEST_MODE;
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
+  strict: process.env.NODE_ENV !== 'production',
+
   state: {
     // whether the app is initialized it's authUser state - set only once
     /* Boolean */ authInitialized: false,
@@ -272,7 +276,8 @@ const store = new Vuex.Store({
     async eklersCheckout({ state }, userId) {
       await db.eklersCheckout(state.authUser.id, userId);
     }
-  }
+  },
+  plugins: [handler]
 });
 
 export default store;

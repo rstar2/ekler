@@ -7,12 +7,13 @@ import store from './store';
 import vuetify from './plugins/vuetify';
 import './plugins/logger';
 import './plugins/notifications';
+import './plugins/top-progress';
 
 import './registerServiceWorker';
 
 Vue.config.productionTip = false;
 
-new Vue({
+export default new Vue({
   router,
   store,
   vuetify,
