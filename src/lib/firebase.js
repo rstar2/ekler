@@ -4,6 +4,7 @@ import 'firebase/firestore';
 import 'firebase/auth';
 import 'firebase/functions';
 import 'firebase/messaging';
+import 'firebase/storage';
 
 const projectId = process.env.VUE_APP_FIREBASE_PROJECT_ID;
 const apiKey = process.env.VUE_APP_FIREBASE_API_KEY;
@@ -32,6 +33,7 @@ const db = firebase.firestore();
 const functions = firebase.functions();
 const auth = firebase.auth();
 const GoogleAuthProvider = firebase.auth.GoogleAuthProvider;
+const storage = firebase.storage();
 
 if (process.env.VUE_APP_FIREBASE_OFFLINE_SUPPORT === 'true') {
   // enable Firestore offline persistence
@@ -47,5 +49,5 @@ if (process.env.VUE_APP_FIREBASE_OFFLINE_SUPPORT === 'true') {
   // Subsequent queries will use persistence, if it was enabled successfully
 }
 
-export { messaging, db, functions, auth, GoogleAuthProvider };
+export { messaging, db, storage, functions, auth, GoogleAuthProvider };
 export default firebase;

@@ -87,33 +87,11 @@ export default {
         linkLabels: true,
         linkWidth: LINK_WIDTH,
         size: { h: 600 }
-      }
+      },
+      nodes: []
     };
   },
   computed: {
-    nodes() {
-      // return [ { id: 1, name: 'my node 1' }, ....]
-      const nodes = this.users.map(user => {
-        const node = { id: user.id, name: user.name };
-
-        // mark the authorized user
-        if (this.authUserId && node.id === this.authUserId) {
-          node._color = 'orange';
-        }
-
-        // mark all checkout users
-        if (this.checkouts[node.id]) {
-          node._color = 'red';
-        }
-
-        // make the node be the avatar as a circle
-        node.svgSym = createSVGFromImgUrl(avatars.createAvatar(user));
-
-        return node;
-      });
-
-      return nodes;
-    },
     links() {
       //  return [{ sid: 4, tid: 5, name: 3 }, ...]
       const links = [];
@@ -135,6 +113,51 @@ export default {
       this.nodes;
 
       return links;
+    }
+  },
+  watch: {
+    users: {
+      handler(users) {
+        // return [ { id: 1, name: 'my node 1' }, ....]
+        this.nodes = this.users.map(user => {
+          const node = { id: user.id, name: user.name };
+
+          // mark the authorized user
+          if (this.authUserId && node.id === this.authUserId) {
+            node._color = 'orange';
+          }
+
+          // mark all checkout users
+          if (this.checkouts[node.id]) {
+            node._color = 'red';
+          }
+
+          // // make the node be the avatar as a circle
+          // node.svgSym = createSVGFromImgUrl(imageUrl);
+
+          return node;
+        });
+
+        // request/get the avatars for each user
+        const avatarPromises = users.map(user => avatars.getAvatar(user));
+
+        Promise.all(avatarPromises).then(imageUrls => {
+          // attach the avatar image url to each node
+          // NOTE the whole this.nodes has to be 'updated' in order Vue reactivity to catch the change
+          // updating just a single array items will not
+          const nodes = [];
+          for (let i = 0; i < imageUrls.length; i++) {
+            // console.log('Attach avatar URL ', imageUrls[i], 'to', this.nodes[i].name);
+            nodes[i] = {
+              ...this.nodes[i],
+              svgSym: createSVGFromImgUrl(imageUrls[i])
+            };
+          }
+
+          this.nodes = nodes;
+        });
+      },
+      immediate: true
     }
   },
   //   created() {

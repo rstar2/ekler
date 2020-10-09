@@ -7,7 +7,7 @@
       <Navbar />
     </v-app-bar>
 
-    <v-content>
+    <v-main>
       <!-- <v-container fluid> -->
 
       <!-- Add a spinner until Firebase is "initialized" and user is known to be logged in or out -->
@@ -28,7 +28,7 @@
       <!--  These components are necessary for the notifications/confirmations plugin to work -->
       <Notifications />
       <Confirmations />
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 

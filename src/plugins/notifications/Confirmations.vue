@@ -23,7 +23,7 @@ export default {
       confirm: {
         text: null,
         callback: null,
-        timeout: 0
+        timeout: -1
       },
       confirmed: false,
       color: 'info' // 'cyan darken-2'

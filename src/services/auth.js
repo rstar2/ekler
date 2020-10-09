@@ -1,6 +1,6 @@
 import logger from '../lib/logger';
 import { prune } from '../lib/util';
-import { db, auth } from '../lib/firebase';
+import firebase, { db, auth } from '../lib/firebase';
 
 export default {
   /**
@@ -135,9 +135,17 @@ export default {
           .then(() => {
             // update in the DB if necessary
             if (name || photoURL) {
-              db.collection(process.env.VUE_APP_FIREBASE_COLL_USERS)
+              return db
+                .collection(process.env.VUE_APP_FIREBASE_COLL_USERS)
                 .doc(user.uid)
-                .set(prune({ name, jiraOwnerId: photoURL }), { merge: true });
+                .set(prune({ name, avatarURL: photoURL }), { merge: true });
+            } else if (null == photoURL) { // if null - then delete (undefined is as "not-changed")
+              return db
+                .collection(process.env.VUE_APP_FIREBASE_COLL_USERS)
+                .doc(user.uid)
+                .update({
+                  avatarURL: firebase.firestore.FieldValue.delete()
+                });
             }
           })
           .then(() => user)

@@ -20,8 +20,9 @@
 - Add real CSS theme - active route CSS-class also to be included
 - Add history-load pagination and virtual scroll (when history becomes too big)
 - ~~Add avatars~~
-   - ~~Allow setting/merging of a Jira account-email~~
-   - ~~Show avatars with the Jira endpoint (it will work if user is logged in Jira at the moment)~~
+    - ~~Firebase storage~~
+    - ~~web-screenshot~~
+    - ~~upload~~
 
 ## CLI
 
@@ -37,3 +38,5 @@
 
 - GUI - The graph/net is not positioned properly and is not visible all of it,
         later resizing the window also makes things worse
+    > Try other graph/network libs like:
+       - https://visjs.org/ (https://github.com/visjs/vis-network, example: https://visjs.github.io/vis-network/examples/network/nodeStyles/circularImages.html)

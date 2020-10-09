@@ -16,7 +16,7 @@ export default {
       info: {
         text: null,
         type: null,
-        timeout: 0
+        timeout: -1
       }
     };
   },

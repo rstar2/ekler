@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="active" max-width="450" :users="users" :activator="activator">
+  <v-dialog v-model="active" max-width="450" :activator="activator">
     <v-card>
       <v-card-title class="headline">Give Eklers</v-card-title>
 
@@ -22,7 +22,11 @@
               >
                 <template v-slot:item="data">
                   <v-list-item-avatar>
-                    <img :src="getAvatar(data.item)" />
+                    <Promised :promise="getAvatar(data.item)">
+                      <template v-slot:combined="{ data }">
+                        <img :src="data" />
+                      </template>
+                    </Promised>
                   </v-list-item-avatar>
                   <v-list-item-content>
                     <v-list-item-title v-html="data.item.name"></v-list-item-title>
@@ -55,9 +59,12 @@
 </template>
 
 <script>
+import { Promised } from 'vue-promised';
+
 import * as avatars from '@/services/avatars';
 
 export default {
+  components: { Promised },
   props: {
     users: {
       type: Array,
@@ -83,10 +90,10 @@ export default {
   methods: {
     /**
      * @param {Object} user
-     * @return {String}
+     * @return {Promise<String>}
      */
     getAvatar(user) {
-      return avatars.createAvatar(user);
+      return avatars.getAvatar(user);
     },
 
     /**

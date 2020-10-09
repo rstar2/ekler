@@ -1,8 +1,6 @@
 const admin = require('firebase-admin');
 const messaging = admin.messaging();
 
-const db = require('../db');
-
 module.exports = {
   /**
    * Send a message to all user's assigned FCM device tokens
