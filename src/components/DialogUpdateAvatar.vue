@@ -104,6 +104,8 @@ export default {
   },
   data() {
     return {
+      canCapture: false,
+
       isDisabled: true,
       isTouched: false,
       curAvatarUrl: null,
@@ -118,9 +120,23 @@ export default {
     },
     avatarHeigth() {
       return AVATAR_HEIGHT;
-    },
-    canCapture() {
-      return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    }
+  },
+  created() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      // navigator.mediaDevices.enumerateDevices is used to check if WebCam is existing
+      if (navigator.mediaDevices.enumerateDevices) {
+        navigator.mediaDevices.enumerateDevices().then(
+          /* MediaDeviceInfo[] */ devices => {
+            // check if any of the media divices is not "video" kind (e.g. WebCam)
+            this.canCapture = devices.some(deviceInfo => deviceInfo.kind === 'videoinput');
+          }
+        );
+      } else {
+        // assume there is WebCam even if there's in reallity no
+        // the navigator.mediaDevices.getUserMedia() will fail then anyway
+        this.canCapture = true;
+      }
     }
   },
   watch: {

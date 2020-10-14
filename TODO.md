@@ -22,7 +22,7 @@
 - ~~Add avatars~~
     - ~~Firebase storage~~
     - ~~web-screenshot~~
-    - ~~upload~~
+    - ~~file-select~~
 
 ## CLI
 
