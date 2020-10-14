@@ -19,7 +19,7 @@ module.exports = {
    * @param {Boolean} dryRun
    */
   async sendEmail(user, payload) {
-    const { id, email, receiveEmails } = user;
+    const { id, email, receiveEmails = true } = user;
 
     if (!receiveEmails) return false;
 

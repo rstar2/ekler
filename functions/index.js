@@ -86,23 +86,31 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
     const userFrom = await db.userGet(data.from);
     const msg = `${userFrom.name} has to give you ${data.count} new ekler(s)`;
 
-    const invalidTokens = await messaging.sendMessage(userTo, {
-      // Create proper Notification
-      notification: {
-        title: 'New eklers',
-        body: msg,
-        icon: 'img/notify-add.png',
-        clickAction: APP_URL
-      }
-    });
+    try {
+      const invalidTokens = await messaging.sendMessage(userTo, {
+        // Create proper Notification
+        notification: {
+          title: 'New eklers',
+          body: msg,
+          icon: 'img/notify-add.png',
+          clickAction: APP_URL
+        }
+      });
 
-    // invalidate any of the FCM registration tokens
-    if (invalidTokens) {
-      await db.userRemoveFcmTokens(data.to, invalidTokens);
+      // invalidate any of the FCM registration tokens
+      if (invalidTokens) {
+        await db.userRemoveFcmTokens(data.to, invalidTokens);
+      }
+    } catch (error) {
+      console.error(`Failed to send Push messages to ${userTo}`, error);
     }
 
     // send email also
-    await email.sendEmail(userTo, { subject: 'Eklers - Received new eklers', text: msg });
+    try {
+      await email.sendEmail(userTo, { subject: 'Eklers - Received new eklers', text: msg });
+    } catch (error) {
+      console.error(`Failed to send email to ${userTo}`, error);
+    }
   }
 
   return true;
