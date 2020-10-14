@@ -2,6 +2,8 @@ const nodemailer = require('nodemailer');
 
 const EMAIL_FROM = process.env.emailFrom || 'rumenn@qnext.com';
 
+// when using Mailtrap - for testing purposes
+// TODO: make all these be env variables
 const transporter = nodemailer.createTransport({
   host: 'smtp.mailtrap.io',
   port: 2525,
@@ -11,6 +13,16 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// When using Gmail to send
+// const transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         user: 'yourgmailaccount@gmail.com',
+//         pass: 'yourgmailaccpassword'
+//     }
+// });
+
+// TODO: make all these be env variables
 module.exports = {
   /**
    * Send a email to user's account email
