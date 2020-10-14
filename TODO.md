@@ -24,6 +24,9 @@
     - ~~web-screenshot~~
     - ~~file-select~~
 
+- Send email (not only Push messages) when user is "checked-out" or received eklers
+- Clear "check-outed" friend - e.g. requested got his eklers from the other user, so "unlock/zero" him
+
 ## CLI
 
 - ~~Add add user - create with user/name and predefined password - must be added into the users DB also~~

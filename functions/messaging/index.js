@@ -6,7 +6,9 @@ module.exports = {
    * Send a message to all user's assigned FCM device tokens
    * @param {{id: String, fcmTokens: Array}} user
    * @param {admin.messaging.MessagingPayload} payload
-   * @param {Boolean} dryRun
+   * @param {Boolean} dryRun Whether or not the message should actually be sent. When set to `true`,
+     allows developers to test a request without actually sending a message. When
+     set to `false`, the message will be sent.
    */
   async sendMessage(user, payload, dryRun = false) {
     // This registration token comes from the client FCM SDKs and saved in Firestore
@@ -67,7 +69,7 @@ module.exports = {
 
   /**
    * Invalidate (check which are invalid) user's FCM device tokens
-   * @param {Object} user
+   * @param {{id: String, fcmTokens: Array}} user
    */
   async invalidate(user) {
     return this.sendMessage(user, { data: { test: true } }, true);

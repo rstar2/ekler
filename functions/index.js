@@ -23,6 +23,8 @@ const db = require('./db');
 db.init(collusers, colleklers, collhistory);
 
 const messaging = require('./messaging');
+const email = require('./email');
+const { sendEmail } = require('./email');
 
 // From https://firebase.google.com/docs/functions/config-env
 // GCLOUD_PROJECT and FIREBASE_CONFIG are auto-populated environment variables
@@ -80,12 +82,15 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
     // add in the 'history' collection finally
     await db.historyAdd(db.history.ADD, data);
 
-    const user = await db.userGet(data.to);
-    const invalidTokens = await messaging.sendMessage(user, {
+    const userTo = await db.userGet(data.to);
+    const userFrom = await db.userGet(data.from);
+    const msg = `${userFrom.name} has to give you ${data.count} new ekler(s)`;
+
+    const invalidTokens = await messaging.sendMessage(userTo, {
       // Create proper Notification
       notification: {
-        title: 'Eklers',
-        body: `${user.name} has to give you ${data.count} new ekler(s)`,
+        title: 'New eklers',
+        body: msg,
         icon: 'img/notify-add.png',
         clickAction: APP_URL
       }
@@ -95,6 +100,9 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
     if (invalidTokens) {
       await db.userRemoveFcmTokens(data.to, invalidTokens);
     }
+
+    // send email also
+    await email.sendEmail(userTo, { subject: 'Eklers - Received new eklers', text: msg });
   }
 
   return true;
@@ -133,9 +141,16 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
     // add in the 'history' collection finally
     await db.historyAdd(db.history.CHECKOUT, data);
 
-    const invalidTokens = await messaging.sendMessage(data.to, {
-      title: 'Checkout',
-      body: 'XXX wants his eklers!!!'
+    const userTo = await db.userGet(data.to);
+    const userFrom = await db.userGet(data.from);
+    const msg = `${userFrom.name} wants his eklers!!!`;
+
+    // send email also
+    await email.sendEmail(userTo, { subject: 'Eklers - Request', text: msg });
+
+    const invalidTokens = await messaging.sendMessage(userTo, {
+      title: 'Request',
+      body: msg
     });
 
     // invalidate any of the FCM registration tokens
