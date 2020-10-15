@@ -3,6 +3,7 @@
 ## Firebase
 
 - ~~Create "dbAddEkler_app" Callable Function that will add "ekler(s)" - e.g. update necessary DB collections and also insert a history-record.~~
+- ~~Send email (not only Push messages) when user is "checked-out" or received eklers~~
 
 ## Client
 
@@ -24,8 +25,10 @@
     - ~~web-screenshot~~
     - ~~file-select~~
 
-- Send email (not only Push messages) when user is "checked-out" or received eklers
+- Allow users to "DISABLE" receiving of such notification emails
 - Clear "check-outed" friend - e.g. requested got his eklers from the other user, so "unlock/zero" him
+- ~~Make the auth-user with red circle  - e.g. to stand-out from others~~
+- Make the avatars are requested from the avatarURL and not from the FirebaseStorage getDownloadURL() returned Promise?
 
 ## CLI
 

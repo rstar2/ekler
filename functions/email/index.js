@@ -2,15 +2,20 @@ const nodemailer = require('nodemailer');
 
 /**
  * These options are actually the Firebase Functions config (e.g. functions.config())
- * @param {{gmail: {email: String, pass: String}, mailtrap: {user: String, pass: String, from: String}, fromPrefix: String}} options
+ * @param {{gmail: {email: String, pass: String}, mailtrap: {user: String, pass: String, from: String}}} options
+ * @param {String} fromPrefix
  */
-module.exports = function(options) {
-  const { gmail, mailtrap, fromPrefix = '' } = options;
+module.exports = function(options, fromPrefix = '') {
+  const { gmail, mailtrap } = options;
 
   // if Gmail transport is available then use it (like in production)
   // otherwise use the Mailtrap (in dev case for testing purpose)
   let transport, emailFrom;
   if (gmail) {
+    // NOTE: For Gmail with just using the user/password authentication
+    // it is needed the 'gmail.email' account to be configured as "Allow less secure apps: ON"
+    // otherwise emails will not be allowed
+    // It's actually better to use different Auth method like OAuth2 or a different email provider like Mailgun, SendGrid, etc...
     transport = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -44,12 +49,12 @@ module.exports = function(options) {
      */
     async sendEmail(user, payload) {
       // not email config - so do nothing
-      if (!transport) return false;
+      if (!transport) return console.log('No email transport') || false;
 
       const { uid, email, receiveEmails = true } = user;
 
       // check if user wants to NOT receive any emails
-      if (!receiveEmails) return false;
+      if (!receiveEmails) return console.log('No emails required') || false;
 
       const { subject, text, html } = payload;
 
