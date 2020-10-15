@@ -4,7 +4,7 @@ const messaging = admin.messaging();
 module.exports = {
   /**
    * Send a message to all user's assigned FCM device tokens
-   * @param {{id: String, fcmTokens: Array}} user
+   * @param {{uid: String, fcmTokens: Array}} user
    * @param {admin.messaging.MessagingPayload} payload
    * @param {Boolean} dryRun Whether or not the message should actually be sent. When set to `true`,
      allows developers to test a request without actually sending a message. When
@@ -16,7 +16,7 @@ module.exports = {
 
     if (!fcmTokens) return console.log('No Push messaging registration');
 
-    console.log(`Send to FCM tokens for user ${user.id}:`, fcmTokens);
+    console.log(`Send to FCM tokens for user ${user.uid}:`, fcmTokens);
 
     // each fcmToken can be of the sort { token: 'XXX', deviceId: 'YYY;, .... } (e.g. have more complex data stored)
     const tokens = fcmTokens.map(fcmToken => fcmToken.token);
@@ -69,7 +69,7 @@ module.exports = {
 
   /**
    * Invalidate (check which are invalid) user's FCM device tokens
-   * @param {{id: String, fcmTokens: Array}} user
+   * @param {{uid: String, fcmTokens: Array}} user
    */
   async invalidate(user) {
     return this.sendMessage(user, { data: { test: true } }, true);

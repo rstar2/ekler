@@ -38,7 +38,7 @@ const sanitizeKey = key => {
  */
 const setEnvs = envs => {
   const envsConfig = [];
-  envs.forEach((key, value) => {
+  envs.forEach((value, key) => {
     key = sanitizeKey(key);
 
     if (!key) return;
@@ -101,7 +101,7 @@ Promise.all(
     // allow overwriting of env variable when present in more than on file
     // so that the last one to be set
     return envsArr.reduce((all, envs) => {
-      envs.forEach(all.set.bind(all));
+      envs.forEach((value, key) => all.set(key, value));
       return all;
     }, new Map());
   })

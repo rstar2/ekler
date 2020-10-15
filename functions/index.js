@@ -23,8 +23,7 @@ const db = require('./db');
 db.init(collusers, colleklers, collhistory);
 
 const messaging = require('./messaging');
-const email = require('./email');
-const { sendEmail } = require('./email');
+const email = require('./email')(functionsConfig.gmail, functionsConfig.mailtrap, 'Admin Eklers');
 
 // From https://firebase.google.com/docs/functions/config-env
 // GCLOUD_PROJECT and FIREBASE_CONFIG are auto-populated environment variables
@@ -82,8 +81,8 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
     // add in the 'history' collection finally
     await db.historyAdd(db.history.ADD, data);
 
-    const userTo = await db.userGet(data.to);
-    const userFrom = await db.userGet(data.from);
+    const userTo = { ...(await db.userGet(data.to)), uid: data.to };
+    const userFrom = { ...(await db.userGet(data.from)), uid: data.from };
     const msg = `${userFrom.name} has to give you ${data.count} new ekler(s)`;
 
     try {
@@ -149,20 +148,28 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
     // add in the 'history' collection finally
     await db.historyAdd(db.history.CHECKOUT, data);
 
-    const userTo = await db.userGet(data.to);
-    const userFrom = await db.userGet(data.from);
+    const userTo = { ...(await db.userGet(data.to)), uid: data.to };
+    const userFrom = { ...(await db.userGet(data.from)), uid: data.from };
     const msg = `${userFrom.name} wants his eklers!!!`;
 
+    try {
+      const invalidTokens = await messaging.sendMessage(userTo, {
+        title: 'Request',
+        body: msg
+      });
+
+      // invalidate any of the FCM registration tokens
+      await db.userRemoveFcmTokens(data.to, invalidTokens);
+    } catch (error) {
+      console.error(`Failed to send Push messages to ${userTo}`, error);
+    }
+
     // send email also
-    await email.sendEmail(userTo, { subject: 'Eklers - Request', text: msg });
-
-    const invalidTokens = await messaging.sendMessage(userTo, {
-      title: 'Request',
-      body: msg
-    });
-
-    // invalidate any of the FCM registration tokens
-    await db.userRemoveFcmTokens(data.to, invalidTokens);
+    try {
+      await email.sendEmail(userTo, { subject: 'Eklers - Request', text: msg });
+    } catch (error) {
+      console.error(`Failed to send email to ${userTo}`, error);
+    }
   }
 
   return true;
