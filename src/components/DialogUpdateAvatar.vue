@@ -240,7 +240,7 @@ export default {
               // render it on the canvas - note the scaling
               const /* HTMLCanvasElement */ canvas = this.$refs.snapshotCapture;
               const /* CanvasRenderingContext2D */ context = canvas.getContext('2d');
-              context.clearRect(0, 0, AVATAR_WIDTH, AVATAR_HEIGHT);
+              context.clearRect(0, 0, this.avatarWidth, this.avatarHeigth);
               // TODO: it's better to do it only if the image is bigger than the canvas,
               // and if it's smaller to center it
               context.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height);
