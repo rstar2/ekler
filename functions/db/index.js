@@ -123,7 +123,7 @@ module.exports = {
   },
 
   /**
-   * Checkout (request owed) eklers from someone
+   * Checkout/Lock (request owed) eklers from someone
    * @param {String} from user who wants/requests his/hers owed eklers
    * @param {String} to user (owing the eklers) from whom the other 'from' user requests his eklers
    * @return {Promise}
@@ -136,15 +136,17 @@ module.exports = {
 
     if (!toUser) throw new Error(`${to} is not owing any eklers to anybody`);
 
-    const toFromCount = toUser[from];
+    // the info for user 'from' to whom user 'to' is owing eklers
+    const toFrom = toUser[from];
 
-    if (!toFromCount) throw new Error(`${to} is not owing any eklers to ${from}`);
+    if (!toFrom) throw new Error(`${to} is not owing any eklers to ${from}`);
 
-    const owedEklers = toFromCount.owes;
+    // owed eklers count
+    const owedEklers = toFrom.owes;
 
-    if (!owedEklers) throw new Error(`${to} is not owing any eklers to ${from} -internal error`);
+    if (!owedEklers) throw new Error(`${to} is not owing any eklers to ${from} - internal error`);
 
-    if (toFromCount.checkout) {
+    if (toFrom.checkout) {
       console.log(`${from} has already requested/checkout his eklers from ${to}`);
       return false;
     }
@@ -157,6 +159,40 @@ module.exports = {
     });
 
     console.log(`${from} requested/checkout his eklers from ${to}`);
+
+    return true;
+  },
+
+  /**
+   * Unlock someone after receiving requested owed eklers
+   * @param {String} from user who unlocks
+   * @param {String} to user who is to be unlocked
+   * @return {Promise}
+   */
+  async eklersUnlock({ from, to }) {
+    // TODO:
+    const toUser = await eklers
+      .doc(to)
+      .get()
+      .then(docSnapshot => docSnapshot.data());
+
+    if (!toUser) throw new Error(`${to} is not owing any eklers to anybody`);
+
+    // the info for user 'from' to whom user 'to' is owing eklers
+    const toFrom = toUser[from];
+
+    if (!toFrom) throw new Error(`${to} is not owing any eklers to ${from}`);
+
+    if (!toFrom.checkout) {
+      console.log(`${from} has not requested/checkout his eklers from ${to}`);
+      return false;
+    }
+
+    await eklers.doc(to).update({
+      [from]: admin.firestore.FieldValue.delete()
+    });
+
+    console.log(`${from} received his eklers from ${to} and unlocked him`);
 
     return true;
   },
@@ -187,7 +223,8 @@ module.exports = {
    */
   history: {
     ADD: 'ADD',
-    CHECKOUT: 'CHECKOUT'
+    CHECKOUT: 'CHECKOUT',
+    UNLOCK: 'UNLOCK'
   },
 
   /**

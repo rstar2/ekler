@@ -68,10 +68,6 @@ export default {
       type: Array,
       required: true
     },
-    checkouts: {
-      type: Object,
-      required: true
-    },
     users: {
       type: Array,
       required: true
@@ -79,12 +75,16 @@ export default {
     authUserId: {
       type: String,
       default: null
+    },
+    isBlocked: {
+      type: Function,
+      required: true
     }
   },
   data() {
     return {
       options: {
-        force: 10000,
+        force: 5000,
         nodeSize: NODE_SIZE,
         nodeLabels: true,
         linkLabels: true,
@@ -153,7 +153,7 @@ export default {
         }
 
         // mark all checkout users
-        if (this.checkouts[node.id]) {
+        if (this.isBlocked(node.id)) {
           node._color = 'red';
         }
 

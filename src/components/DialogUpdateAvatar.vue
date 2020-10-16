@@ -79,13 +79,6 @@
 import * as avatars from '@/services/avatars';
 import { playSound, SNAPSHOT } from '@/lib/audio';
 
-const AVATAR_WIDTH = 100;
-const AVATAR_HEIGHT = 100;
-const avatarConstraints = {
-  video: { width: { exact: AVATAR_WIDTH }, height: { exact: AVATAR_HEIGHT } },
-  audio: false
-};
-
 export default {
   props: {
     user: {
@@ -95,6 +88,14 @@ export default {
     show: {
       type: Boolean,
       required: true
+    },
+    avatarWidth: {
+      type: Number,
+      default: 50
+    },
+    avatarHeigth: {
+      type: Number,
+      default: 50
     }
   },
   // use the 'show' property for v-model
@@ -115,11 +116,11 @@ export default {
     };
   },
   computed: {
-    avatarWidth() {
-      return AVATAR_WIDTH;
-    },
-    avatarHeigth() {
-      return AVATAR_HEIGHT;
+    avatarConstraints() {
+      return {
+        video: { width: { exact: this.avatarWidth }, height: { exact: this.avatarHeigth } },
+        audio: false
+      };
     }
   },
   created() {
@@ -182,7 +183,7 @@ export default {
       }
     },
     captureStream() {
-      navigator.mediaDevices.getUserMedia(avatarConstraints).then(stream => {
+      navigator.mediaDevices.getUserMedia(this.avatarConstraints).then(stream => {
         this.videoCaptureStream = stream;
         this.$refs.videoCapture.srcObject = this.videoCaptureStream;
       });
@@ -196,7 +197,7 @@ export default {
       playSound(SNAPSHOT);
 
       // render it on the canvas - no need to scale as video and canvas are same size
-      context.clearRect(0, 0, AVATAR_WIDTH, AVATAR_HEIGHT);
+      context.clearRect(0, 0, this.avatarWidth, this.avatarHeigth);
       context.drawImage(this.$refs.videoCapture, 0, 0);
 
       // get it's data for storage on update

@@ -5,7 +5,7 @@
       :users="users"
       :authUserId="authId"
       :eklers="eklers"
-      :checkouts="checkouts"
+      :isBlocked="isBlocked"
       @userClick="onUserClick"
     />
 
@@ -19,13 +19,16 @@
 
     <!-- notification:
      1. for how many eklers you owe someone else
-     2. if yo already requested/checkouted the other user that owes you eklers
-     -->
+     2. if you already requested/checkouted the other user that owes you eklers
+    -->
     <DialogNotification v-model="notification" :title="notificationTitle" />
 
-    <!-- notification for how many eklers someone else owe you -->
+    <!-- confirmation for :
+       1. if you want to requested/checkouted the other user that owes you eklers
+       2. if you already requested/checkouted the otherand he gave you the eklers (e.f. to unlock it)
+    -->
     <DialogConfirmation
-      title="Request"
+      :title="checkoutTitle"
       :text="checkoutMsg"
       @close="checkout.userId = null"
       @confirm="doCheckoutConfirm()"
@@ -55,14 +58,16 @@ export default {
     return {
       notification: '',
       notificationTitle: '',
+
       checkout: {
         userId: null,
-        eklers: 0
+        eklers: 0,
+        isAlready: false
       }
     };
   },
   computed: {
-    ...mapState(['users', 'eklers', 'checkouts']),
+    ...mapState(['users', 'eklers']),
     ...mapGetters(['authId', 'getEklers', 'isBlocked', 'getUserName']),
     toUsers() {
       let toUsers = this.users;
@@ -70,12 +75,16 @@ export default {
       if (this.authId) toUsers = toUsers.filter(user => user.id !== this.authId);
       return toUsers;
     },
+    checkoutTitle() {
+      return this.checkout.isAlready ? 'Already requested' : 'Request';
+    },
     checkoutMsg() {
       // this will close the dialog also
       if (!this.checkout.userId) return '';
 
       const count = this.checkout.eklers;
-      return `${this.getUserName(this.checkout.userId)} owes you ${count} ${pluralize(count, 'ekler')}`;
+      const msg = `${this.getUserName(this.checkout.userId)} owes you ${count} ${pluralize(count, 'ekler')}.`;
+      return this.checkout.isAlready ? `${msg} Did you get them?` : `${msg} Request them?`;
     }
   },
   mounted() {
@@ -118,10 +127,10 @@ export default {
         console.log(userId, 'owes you', userToOwner.eklers, 'eklers');
 
         if (userToOwner.checkout) {
-          // so user is already "checkout"-ed - just show such message
-          const count = userToOwner.eklers;
-          this.notification = `${this.getUserName(userId)} owes you ${count} ${pluralize(count, 'ekler')}`;
-          this.notificationTitle = 'Already requested';
+          // so user is already "checkout"-ed, so show confirmation message to unlock him
+          this.checkout.isAlready = true;
+          this.checkout.userId = userId;
+          this.checkout.eklers = userToOwner.eklers;
         } /* else if (this.isBlocked(userId)) {
           // he/she is already blocked
           this.$notify({
@@ -129,7 +138,8 @@ export default {
             type: 'error'
           });
         }  */ else {
-          // show confirmation dialog
+          // show confirmation dialog to request the owed eklers
+          this.checkout.isAlready = false;
           this.checkout.userId = userId;
           this.checkout.eklers = userToOwner.eklers;
         }
@@ -137,7 +147,7 @@ export default {
     },
 
     doCheckoutConfirm() {
-      this.$store.dispatch('eklersCheckout', this.checkout.userId);
+      this.$store.dispatch(this.checkout.isAlready ? 'eklersUnlock' : 'eklersCheckout', this.checkout.userId);
     }
   }
 };

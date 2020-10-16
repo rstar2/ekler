@@ -66,6 +66,9 @@ import * as avatars from '@/services/avatars';
 import DialogInput from '../components/DialogInput.vue';
 import DialogUpdateAvatar from '../components/DialogUpdateAvatar.vue';
 
+const AVATAR_WIDTH = 100;
+const AVATAR_HEIGHT = 100;
+
 export default {
   components: { DialogInput, DialogUpdateAvatar },
   data() {
@@ -82,7 +85,13 @@ export default {
     };
   },
   computed: {
-    ...mapState(['authUser'])
+    ...mapState(['authUser']),
+    avatarWidth() {
+      return AVATAR_WIDTH;
+    },
+    avatarHeigth() {
+      return AVATAR_HEIGHT;
+    }
   },
   watch: {
     'dialogInput.show': {

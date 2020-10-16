@@ -27,7 +27,7 @@
 
 - Allow users to "DISABLE" receiving of such notification emails
 - Clear "check-outed" friend - e.g. requested got his eklers from the other user, so "unlock/zero" him
-- ~~Make the auth-user with red circle  - e.g. to stand-out from others~~
+- Make the auth-user with red circle  - e.g. to stand-out from others
 - Make the avatars are requested from the avatarURL and not from the FirebaseStorage getDownloadURL() returned Promise?
 
 ## CLI

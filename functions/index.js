@@ -35,28 +35,7 @@ const APP_URL = `https://${process.env.GCLOUD_PROJECT}.web.app/`;
  * Add (e.g virtual owe) ekler(s) from someone to someone and store in Firestore DB.
  */
 exports.addEklers = functions.https.onCall(async (data, context) => {
-  // To ensure the client gets useful error details, return errors from a callable by throwing
-  // (or returning a Promise rejected with) an instance of functions.https.HttpsError.
-  // The error has a code attribute that can be one of the values listed at functions.https.HttpsError.
-  // The errors also have a string message, which defaults to an empty string.
-  // They can also have an optional details field with an arbitrary value.
-  // If an error other than HttpsError is thrown from your functions, your client instead receives
-  // an error with the message INTERNAL and the code internal.
-
-  // Authentication / user information is automatically added to the request.
-  // Checking that the user is authenticated.
-  if (!context.auth) {
-    // Throwing an HttpsError so that the client gets the error details.
-    throw new functions.https.HttpsError('unauthenticated', 'The function must be called ' + 'while authenticated.');
-  }
-  // const uid = context.auth.uid;
-
-  // validate attributes if necessary
-  //   if (!(typeof text === 'string') || text.length === 0) {
-  //     // Throwing an HttpsError so that the client gets the error details.
-  //     throw new functions.https.HttpsError('invalid-argument', 'The function must be called with ' +
-  //         'one arguments "text" containing the message text to add.');
-  //   }
+  checkAuthorized(context);
 
   console.log('Add Eklers :', data);
 
@@ -118,59 +97,29 @@ exports.addEklers = functions.https.onCall(async (data, context) => {
 /**
  * This is HTTPS callable function
  *
- * Add (e.g virtual owe) ekler(s) from someone to someone and store in Firestore DB.
+ * Request/lock someone that owes ekler(s) to someone else.
  */
 exports.checkoutEklers = functions.https.onCall(async (data, context) => {
-  // Checking that the user is authenticated.
-  if (!context.auth) {
-    // Throwing an HttpsError so that the client gets the error details.
-    throw new functions.https.HttpsError('unauthenticated', 'The function must be called ' + 'while authenticated.');
-  }
+  checkAuthorized(context);
 
-  console.log('Checkout Eklers :', data);
+  console.log('Checkout user :', data);
 
-  let errorInvalidArgument;
-  if (!data.from) {
-    errorInvalidArgument = 'No "from" present - cannot checkout Eklers';
-  } else if (!data.to) {
-    errorInvalidArgument = 'No "to" present - cannot checkout Eklers';
-  }
-  if (errorInvalidArgument) {
-    console.log(errorInvalidArgument);
-    // terminate the function and send response
-    throw new functions.https.HttpsError('invalid-argument', errorInvalidArgument);
-  }
+  checkoutOrUnlock(data);
 
-  // checkout in the 'eklers' collection
-  const success = await db.eklersCheckout(data);
+  return true;
+});
 
-  if (success) {
-    // add in the 'history' collection finally
-    await db.historyAdd(db.history.CHECKOUT, data);
+/**
+ * This is HTTPS callable function
+ *
+ * Unlock someone that owes ekler(s) to someone else and has given them
+ */
+exports.unlockEklers = functions.https.onCall(async (data, context) => {
+  checkAuthorized(context);
 
-    const userTo = { ...(await db.userGet(data.to)), uid: data.to };
-    const userFrom = { ...(await db.userGet(data.from)), uid: data.from };
-    const msg = `${userFrom.name} wants his/hers eklers!!!`;
+  console.log('Unlock user :', data);
 
-    try {
-      const invalidTokens = await messaging.sendMessage(userTo, {
-        title: 'Request',
-        body: msg
-      });
-
-      // invalidate any of the FCM registration tokens
-      await db.userRemoveFcmTokens(data.to, invalidTokens);
-    } catch (error) {
-      console.error(`Failed to send Push messages to ${userTo}`, error);
-    }
-
-    // send email also
-    try {
-      await email.sendEmail(userTo, { subject: 'Eklers - Request', text: msg });
-    } catch (error) {
-      console.error(`Failed to send email to ${userTo}`, error);
-    }
-  }
+  checkoutOrUnlock(data, false);
 
   return true;
 });
@@ -182,11 +131,7 @@ exports.checkoutEklers = functions.https.onCall(async (data, context) => {
  * for FCM messages (e.g. PushNotifications) in Firestore DB.
  */
 exports.invalidateFcmToken = functions.https.onCall(async (data, context) => {
-  // Checking that the user is authenticated.
-  if (!context.auth) {
-    // Throwing an HttpsError so that the client gets the error details.
-    throw new functions.https.HttpsError('unauthenticated', 'The function must be called ' + 'while authenticated.');
-  }
+  checkAuthorized(context);
 
   console.log('FCM Register device-token :', data);
 
@@ -211,3 +156,87 @@ exports.invalidateFcmToken = functions.https.onCall(async (data, context) => {
 
   return true;
 });
+
+/**
+ *
+ * @param {functions.https.CallableContext} context
+ */
+function checkAuthorized(context) {
+  // To ensure the client gets useful error details, return errors from a callable by throwing
+  // (or returning a Promise rejected with) an instance of functions.https.HttpsError.
+  // The error has a code attribute that can be one of the values listed at functions.https.HttpsError.
+  // The errors also have a string message, which defaults to an empty string.
+  // They can also have an optional details field with an arbitrary value.
+  // If an error other than HttpsError is thrown from your functions, your client instead receives
+  // an error with the message INTERNAL and the code internal.
+
+  // Authentication / user information is automatically added to the request.
+  // Checking that the user is authenticated.
+  if (!context.auth) {
+    // Throwing an HttpsError so that the client gets the error details.
+    throw new functions.https.HttpsError('unauthenticated', 'The function must be called ' + 'while authenticated.');
+  }
+  // const uid = context.auth.uid;
+
+  // validate attributes if necessary
+  //   if (!(typeof text === 'string') || text.length === 0) {
+  //     // Throwing an HttpsError so that the client gets the error details.
+  //     throw new functions.https.HttpsError('invalid-argument', 'The function must be called with ' +
+  //         'one arguments "text" containing the message text to add.');
+  //   }
+}
+
+/**
+ *
+ * @param {{from: String, to: String}} data
+ * @param {Boolean} isCheckout
+ */
+async function checkoutOrUnlock(data, isCheckout = true) {
+  let errorInvalidArgument;
+  if (!data.from) {
+    errorInvalidArgument = 'No "from" present - cannot checkout/unlock user';
+  } else if (!data.to) {
+    errorInvalidArgument = 'No "to" present - cannot checkout/unlock user';
+  }
+  if (errorInvalidArgument) {
+    console.log(errorInvalidArgument);
+    // terminate the function and send response
+    throw new functions.https.HttpsError('invalid-argument', errorInvalidArgument);
+  }
+
+  // checkout in the 'eklers' collection
+  const success = isCheckout ? await db.eklersCheckout(data) : await db.eklersUnlock(data);
+
+  if (success) {
+    // add in the 'history' collection finally
+    await db.historyAdd(isCheckout ? db.history.CHECKOUT : db.history.UNLOCK, data);
+
+    const userTo = { ...(await db.userGet(data.to)), uid: data.to };
+    const userFrom = { ...(await db.userGet(data.from)), uid: data.from };
+    const msg = isCheckout
+      ? `${userFrom.name} wants his/hers eklers!!!`
+      : `${userFrom.name} is grateful for your eklers!!!`;
+
+    try {
+      const invalidTokens = await messaging.sendMessage(userTo, {
+        title: isCheckout ? 'Request' : 'Unlock',
+        body: msg
+      });
+
+      // invalidate any of the FCM registration tokens
+      await db.userRemoveFcmTokens(data.to, invalidTokens);
+    } catch (error) {
+      console.error(`Failed to send Push messages to ${userTo}`, error);
+    }
+
+    // send email also
+    try {
+      await email.sendEmail(userTo, {
+        subject: isCheckout ? 'Eklers - Request' : 'Eklers - Unlock',
+        text: msg
+      });
+    } catch (error) {
+      console.error(`Failed to send email to ${userTo}`, error);
+    }
+  }
+}

@@ -4,6 +4,7 @@ import firebase, { db, functions } from '../lib/firebase';
 // get the Firebase functions to call
 const eklersAddFn = functions.httpsCallable('addEklers');
 const eklersCheckoutFn = functions.httpsCallable('checkoutEklers');
+const eklersUnlockFn = functions.httpsCallable('unlockEklers');
 const invalidateFcmTokenFn = functions.httpsCallable('invalidateFcmToken');
 
 const /* firebase.firestore.CollectionReference */ users = db.collection(process.env.VUE_APP_FIREBASE_COLL_USERS);
@@ -247,7 +248,7 @@ export default {
   },
 
   /**
-   * Request to checkout 'own' eklers from someone
+   * Request to checkout 'owed' eklers from someone
    * @param {String} from user requesting the checkout, e.g. the one to which the other user owes eklers
    * @param {String} to user being 'check-outed', e.g. the one owning the eklers
    */
@@ -257,6 +258,19 @@ export default {
     console.log('Checkout func', from, '->', to);
 
     return eklersCheckoutFn({ from, to }).then(result => result.data);
+  },
+
+  /**
+   * Unlock someone as if he gave the owed eklers
+   * @param {String} from user requesting the unlock, e.g. the one to which the other user owed eklers
+   * @param {String} to user being 'check-outed', e.g. the one owning the eklers
+   */
+  async eklersUnlock(from, to) {
+    // the Firebase Firestore DB is protected from unauthorized add/update/delete
+    // so use a Firebase Callable Function
+    console.log('Unlock func', from, '->', to);
+
+    return eklersUnlockFn({ from, to }).then(result => result.data);
   },
 
   /**

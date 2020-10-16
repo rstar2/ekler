@@ -268,13 +268,23 @@ const store = new Vuex.Store({
     },
 
     /**
-     * Add/Owe eklers
+     * Lock/checkout user
      * @param {Vuex.State} state
      * @param {String} userId
      * @return {Promise}
      */
     async eklersCheckout({ state }, userId) {
       await db.eklersCheckout(state.authUser.id, userId);
+    },
+
+    /**
+     * Unlock user
+     * @param {Vuex.State} state
+     * @param {String} userId
+     * @return {Promise}
+     */
+    async eklersUnlock({ state }, userId) {
+      await db.eklersUnlock(state.authUser.id, userId);
     }
   },
   plugins: [handler]
