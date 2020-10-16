@@ -52,8 +52,11 @@ export function createSVGFromImgUrl(node, imageUrl, size = NODE_SIZE, border = 1
               <circle cx="${middle}" cy="${middle}" r="${middle}" fill="#FFFFFF" />
       </clipPath>
     </defs>
+    <!-- First add the default image and over it try to load a different image, so if the later fails the former will be visible -->
+    <image class="node" href="${'img/avatar.png'}" height="${size}" width="${size}" clip-path="url(#myCircle)"/>
     <image class="node" href="${imageUrl}" height="${size}" width="${size}" clip-path="url(#myCircle)"/>
-    <circle cx="${middle}" cy="${middle}" r="${borderCircle}" stroke="${node._color}" stroke-width="${border}" fill="none" />
+    <circle cx="${middle}" cy="${middle}" r="${borderCircle}" 
+        stroke="${node._color}" stroke-width="${border}" fill="none" />
   </svg>`;
 }
 
