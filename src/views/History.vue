@@ -44,6 +44,8 @@ export default {
           return `${from} owes ${to} ${count} ${pluralize(count, 'ekler')}`;
         case 'CHECKOUT':
           return `${from} wants his/hers eklers from ${to}`;
+        case 'UNLOCK':
+          return `${from} got his/hers eklers from ${to}`;
       }
     },
     /**
@@ -58,7 +60,8 @@ export default {
      */
     getRecordClass({ type }) {
       return {
-        'primary--text': type === 'CHECKOUT'
+        'error--text': type === 'CHECKOUT',
+        'primary--text': type === 'UNLOCK'
       };
     }
   }
