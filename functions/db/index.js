@@ -82,7 +82,8 @@ module.exports = {
       await eklers.doc(from).set(
         {
           [to]: {
-            owes: count
+            owes: count,
+            checkout: false
           }
         },
         { merge: true }
