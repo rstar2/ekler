@@ -5,7 +5,7 @@
       :users="users"
       :authUserId="authId"
       :eklers="eklers"
-      :isBlocked="isBlocked"
+      :checkouts="checkouts"
       @userClick="onUserClick"
     />
 
@@ -67,8 +67,8 @@ export default {
     };
   },
   computed: {
-    ...mapState(['users', 'eklers']),
-    ...mapGetters(['authId', 'getEklers', 'isBlocked', 'getUserName']),
+    ...mapState(['users', 'eklers', 'checkouts']),
+    ...mapGetters(['authId', 'getEklers', 'getUserName']),
     toUsers() {
       let toUsers = this.users;
       // filter the current/owner user

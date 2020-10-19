@@ -27,7 +27,7 @@
 
 - Allow users to "DISABLE" receiving of such notification emails
 - ~~Unlock "check-outed" friend - e.g. owner got his requested eklers from the other user, so "unlock/clear" him~~
-- Make the auth-user with red circle  - e.g. to stand-out from others
+- ~~Make the auth-user/locked-users with different colors - e.g. to stand-out from others~~
 - ~~Load avatars from the user's avatarURL and not from the FirebaseStorage getDownloadURL()~~
 
 ## CLI

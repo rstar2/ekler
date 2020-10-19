@@ -107,8 +107,11 @@ const store = new Vuex.Store({
      * @param {*} state
      * @return {Function}
      */
-    isBlocked(state) {
-      return userId => !!state.checkouts[userId];
+    isCheckout(state) {
+      return userId => {
+        console.log('isCheckout', userId);
+        return !!state.checkouts[userId];
+      };
     }
   },
   mutations: {
@@ -165,6 +168,7 @@ const store = new Vuex.Store({
      */
     checkoutsSet(state, checkouts) {
       // set the checkouts
+      console.log('checkoutsSet', checkouts);
       state.checkouts = checkouts;
     }
   },

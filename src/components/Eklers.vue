@@ -42,7 +42,7 @@ const NODE_SIZE = 48;
  * @param {String} imageUrl
  * @param {Number} size
  */
-export function createSVGFromImgUrl(node, imageUrl, size = NODE_SIZE, border = 1) {
+export function createSVGFromImgUrl(node, imageUrl, size = NODE_SIZE, border = 2) {
   const middle = size / 2;
   const borderCircle = middle - border / 2;
   return `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
@@ -79,8 +79,8 @@ export default {
       type: String,
       default: null
     },
-    isBlocked: {
-      type: Function,
+    checkouts: {
+      type: Object,
       required: true
     }
   },
@@ -92,6 +92,7 @@ export default {
         nodeLabels: true,
         linkLabels: true,
         linkWidth: LINK_WIDTH,
+        fontSize: 12,
         size: { h: 600 }
       },
       nodes: []
@@ -105,11 +106,11 @@ export default {
       this.eklers.forEach(({ /* String */ id: sid, /* Object */ to }) => {
         Object.keys(to).forEach(tid => {
           let _color;
-          if (this.authUserId && (this.authUserId === sid || this.authUserId === tid)) _color = 'orange';
+          if (this.authUserId && (this.authUserId === sid || this.authUserId === tid)) _color = this._colorAuth;
 
-          if (to[tid].checkout) _color = 'red';
+          if (to[tid].checkout) _color = this._colorLocked;
 
-          links.push({ sid, tid, name: to[tid].owes, _color });
+          links.push({ sid, tid, name: to[tid].owes, _color, _svgAttrs: { 'marker-end': 'url(#m-end)' } });
         });
       });
 
@@ -131,11 +132,18 @@ export default {
     authUserId() {
       // on change update the nodes
       this.updateNodes();
+    },
+    checkouts() {
+      // on change update the nodes
+      this.updateNodes();
     }
   },
-  //   created() {
-  //     window.addEventListener('resize', this.onResize);
-  //   },
+  created() {
+    this._colorLocked = this.$vuetify.theme.themes.light.error;
+    this._colorAuth = this.$vuetify.theme.themes.light.primary;
+    this._colorHover = this.$vuetify.theme.themes.light.primary;
+    // window.addEventListener('resize', this.onResize);
+  },
   //   destroyed() {
   //     window.removeEventListener('resize', this.onResize);
   //   },
@@ -152,12 +160,12 @@ export default {
 
         // mark the authorized user
         if (this.authUserId && node.id === this.authUserId) {
-          node._color = 'orange';
+          node._color = this._colorAuth;
         }
 
         // mark all checkout users
-        if (this.isBlocked(node.id)) {
-          node._color = 'red';
+        if (this.checkouts[node.id]) {
+          node._color = this._colorLocked;
         }
 
         // // make the node be the avatar as a circle
@@ -187,10 +195,6 @@ export default {
         this.nodes = nodes;
       });
     },
-    linkCallback(link) {
-      link._svgAttrs = { 'marker-end': 'url(#m-end)' };
-      return link;
-    },
     nodeClick(event, node) {
       const user = this.users.find(user => user.id === node.id);
       this.$emit('userClick', user);
@@ -203,18 +207,28 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .eklers {
   width: 100%;
 }
 
-.defs-markers {
+.eklers .defs-markers {
   width: 0;
   height: 0;
   position: absolute;
 }
-#m-end path,
-#m-start {
+.eklers #m-end path {
   fill: rgba(18, 120, 98, 0.8);
+}
+
+.eklers .link:hover,
+.eklers .node:hover {
+  stroke: dimgrey;
+  stroke-width: 3px;
+}
+/* TODO: Not working */
+.eklers .link:hover #m-end path {
+  /* fill: dimgrey; */
+  fill: rgba(255, 120, 98, 0.8);
 }
 </style>
