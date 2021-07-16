@@ -30,6 +30,8 @@
 - ~~Make the auth-user/locked-users with different colors - e.g. to stand-out from others~~
 - ~~Load avatars from the user's avatarURL and not from the FirebaseStorage getDownloadURL()~~
 
+- Add tests (unit and e2e)
+
 ## CLI
 
 - ~~Add add user - create with user/name and predefined password - must be added into the users DB also~~
@@ -46,3 +48,4 @@
         later resizing the window also makes things worse
     > Try other graph/network libs like:
        - https://visjs.org/ (https://github.com/visjs/vis-network, example: https://visjs.github.io/vis-network/examples/network/nodeStyles/circularImages.html)
+

@@ -49,7 +49,10 @@ function refreshServiceWorker(swWaiting) {
   });
 }
 
-if (process.env.NODE_ENV === 'production') {
+// useful for local dev testing
+const localDev = false;
+
+if (localDev || process.env.NODE_ENV === 'production') {
   register(`${process.env.BASE_URL}service-worker.js`, {
     /**
      * @param {ServiceWorkerRegistration} swRegistration

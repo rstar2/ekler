@@ -92,13 +92,13 @@ export default {
   },
   methods: {
     onAddEklers({ to, count }) {
-      if (this.isBlocked(to)) {
-        this.$notify({
-          text: `User ${this.getUserName(to)} is blocked - needs to give requested eklers`,
-          type: 'error'
-        });
-        return;
-      }
+      //   if (this.isBlocked(to)) {
+      //     this.$notify({
+      //       text: `User ${this.getUserName(to)} is blocked - needs to give requested eklers`,
+      //       type: 'error'
+      //     });
+      //     return;
+      //   }
       const from = this.authId;
       this.$store.dispatch('eklersAdd', { from, to, count });
     },
