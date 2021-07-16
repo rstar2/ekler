@@ -385,7 +385,7 @@ const filterEklers = ({ eklers, checkouts }, /* Array */ users) => {
  * @param {Array} users
  */
 const filterHistory = (history, users) => {
-  console.log('users', users);
+  // console.log('users', users);
 
   let filteredHistory = history.map(record => HistoryRecord.fromDB(record));
   if (!isTestMode) {
