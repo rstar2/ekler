@@ -34,28 +34,28 @@ const store = new Vuex.Store({
   },
   getters: {
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @return {Boolean}
      */
     isAuth(state) {
       return !!state.authUser;
     },
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @return {Boolean}
      */
     isAdmin(state) {
       return !!state.authUser && !!state.authUser.claims.admin;
     },
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @return {String|null}
      */
     authId(state) {
       return state.authUser && state.authUser.id;
     },
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @return {Function}
      */
     checkAuthUser(state, getters) {
@@ -71,7 +71,7 @@ const store = new Vuex.Store({
     /* -------------------------------------- */
 
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @return {Function}
      */
     getUserName(state, getters) {
@@ -84,7 +84,7 @@ const store = new Vuex.Store({
     },
 
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @return {Function}
      */
     getEklers(state) {
@@ -104,7 +104,7 @@ const store = new Vuex.Store({
     },
 
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @return {Function}
      */
     isCheckout(state) {
@@ -116,14 +116,14 @@ const store = new Vuex.Store({
   },
   mutations: {
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      */
     authInitialized(state) {
       // if (state.authInitialized) this.$logger.warn("Store's 'auth' state is already initialized");
       state.authInitialized = true;
     },
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @param {firebase.User?} user "fixed" firebase.User instance enhanced with a 'claims' Object prop
      */
     authUser(state, user) {
@@ -133,7 +133,7 @@ const store = new Vuex.Store({
     /* -------------------------------------- */
 
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @param {HistoryRecord[]} history
      */
     historyAdded(state, history) {
@@ -141,7 +141,7 @@ const store = new Vuex.Store({
       state.history.unshift(...history);
     },
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @param {{id: String, name: String, title: String}[]} users
      */
     usersSet(state, users) {
@@ -149,13 +149,13 @@ const store = new Vuex.Store({
       state.users = users;
     },
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      */
     usersLoaded(state) {
       state.usersLoaded = true;
     },
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @param {{id: String, to: Object}[]} users
      */
     eklersSet(state, eklers) {
@@ -163,7 +163,7 @@ const store = new Vuex.Store({
       state.eklers = eklers;
     },
     /**
-     * @param {*} state
+     * @param {Vuex.State} state
      * @param {{id: String}[]} users
      */
     checkoutsSet(state, checkouts) {

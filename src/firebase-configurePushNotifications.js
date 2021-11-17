@@ -5,6 +5,8 @@ import { messaging } from './lib/firebase';
 import auth from './services/auth.js';
 import db from './services/db.js';
 
+// it's created in the Firebase console for the project
+// -> Cloud Messaging -> Web Push certificates -> Generate Key pair
 const vapidPublicKey = process.env.VUE_APP_FIREBASE_VAPID_PUBLIC_KEY;
 
 /**
